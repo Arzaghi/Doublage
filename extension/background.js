@@ -13,6 +13,11 @@ chrome.runtime.onInstalled.addListener(() => {
       return chrome.storage.sync.set({ favoriteLanguages: ['English'] });
     }
   });
+  chrome.storage.sync.get('duckVolume').then(({ duckVolume }) => {
+    if (!Number.isFinite(duckVolume)) {
+      return chrome.storage.sync.set({ duckVolume: 20 });
+    }
+  });
 });
 
 // ─── Message router ───────────────────────────────────────────────────────────
@@ -28,6 +33,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.sync.set({ audioMode: mode });
     sendToOffscreen({ target: 'offscreen', action: 'updateSettings',
       settings: { audioMode: mode } }).catch(() => {});
+    sendResponse({ success: true });
+    return false;
+  }
+
+  if (message.action === 'previewDuckVolume' || message.action === 'setDuckVolume') {
+    const volume = Math.max(1, Math.min(100, Number(message.volume) || 20));
+    if (message.action === 'setDuckVolume') {
+      chrome.storage.sync.set({ duckVolume: volume });
+    }
+    sendToOffscreen({ target: 'offscreen', action: 'updateSettings',
+      settings: { duckVolume: volume } }).catch(() => {});
     sendResponse({ success: true });
     return false;
   }
@@ -95,7 +111,7 @@ async function handleStartTranslation() {
   if (!tab?.id) throw new Error('No active tab found.');
 
   const settings = await chrome.storage.sync.get([
-    'apiKey', 'targetLanguage', 'audioMode', 'outputMode'
+    'apiKey', 'targetLanguage', 'audioMode', 'outputMode', 'duckVolume'
   ]);
 
   if (!settings.apiKey) {
@@ -119,7 +135,8 @@ async function handleStartTranslation() {
       apiKey:          settings.apiKey,
       targetLanguage:  settings.targetLanguage  || 'English',
       audioMode:       settings.audioMode       || 'duck',
-      outputMode:      settings.outputMode      || 'audio'
+      outputMode:      settings.outputMode      || 'audio',
+      duckVolume:      Math.max(1, Math.min(100, Number(settings.duckVolume) || 20))
     }
   });
 

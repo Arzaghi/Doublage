@@ -75,7 +75,7 @@ if (!window.__doublageInjected) {
           el.dataset.doublageOrigMuted  = el.muted ? '1' : '0';
           el.dataset.doublageOrigVolume = String(el.volume);
         }
-        el.volume = 0.22;
+        el.volume = 0.20;
       }
     });
   }

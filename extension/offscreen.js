@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === 'updateSettings') {
     if (currentSettings && message.settings) {
       Object.assign(currentSettings, message.settings);
-      if (message.settings.audioMode) setOriginalAudioMode(message.settings.audioMode);
+      if (message.settings.audioMode || message.settings.duckVolume) setOriginalAudioMode();
     }
     sendResponse({ success: true });
     return false;
@@ -137,11 +137,11 @@ function handleAudioInput(float32) {
   }
 }
 
-function setOriginalAudioMode(mode) {
+function setOriginalAudioMode(mode = currentSettings?.audioMode) {
   if (!originalGainNode || !originalAudioContext) return;
 
-  // 12% keeps the original audible but lets the translated voice dominate.
-  const gain = mode === 'mute' ? 0 : 0.12;
+  const duckVolume = Math.max(1, Math.min(100, Number(currentSettings?.duckVolume) || 20));
+  const gain = mode === 'mute' ? 0 : duckVolume / 100;
   originalGainNode.gain.setTargetAtTime(gain, originalAudioContext.currentTime, 0.02);
 }
 

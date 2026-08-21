@@ -30,6 +30,9 @@ const langSearch     = document.getElementById('langSearch');
 const langList       = document.getElementById('langList');
 const favPreviewWrap = document.getElementById('favPreviewWrap');
 const favPreview     = document.getElementById('favPreview');
+const duckVolumeControl = document.getElementById('duckVolumeControl');
+const duckVolumeInput = document.getElementById('duckVolume');
+const duckVolumeValue = document.getElementById('duckVolumeValue');
 const toast          = document.getElementById('toast');
 
 // ─── Build language list ──────────────────────────────────────────────────────
@@ -80,7 +83,16 @@ function updateFavPreview() {
   favorites.forEach(lang => {
     const chip = document.createElement('span');
     chip.className   = 'fav-chip';
-    chip.textContent = lang;
+    const label = document.createElement('span');
+    label.textContent = lang;
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'fav-chip-remove';
+    removeButton.textContent = '×';
+    removeButton.title = `Remove ${lang} from favorites`;
+    removeButton.setAttribute('aria-label', `Remove ${lang} from favorites`);
+    removeButton.addEventListener('click', () => toggleFavorite(lang));
+    chip.append(label, removeButton);
     favPreview.appendChild(chip);
   });
 }
@@ -110,9 +122,33 @@ apiKeyInput.addEventListener('blur', saveApiKey);
 document.querySelectorAll('input[name="audioMode"]').forEach(input => {
   input.addEventListener('change', () => {
     if (!input.checked) return;
+    updateDuckVolumeVisibility();
     chrome.storage.sync.set({ audioMode: input.value });
     chrome.runtime.sendMessage({ action: 'setAudioMode', mode: input.value }).catch(() => {});
   });
+});
+
+function currentDuckVolume() {
+  return Math.max(1, Math.min(100, Number(duckVolumeInput.value) || 20));
+}
+
+function renderDuckVolume() {
+  duckVolumeValue.textContent = `${currentDuckVolume()}%`;
+}
+
+function updateDuckVolumeVisibility() {
+  duckVolumeControl.hidden = !document.getElementById('tileDuck').checked;
+}
+
+duckVolumeInput.addEventListener('input', () => {
+  renderDuckVolume();
+  chrome.runtime.sendMessage({ action: 'previewDuckVolume', volume: currentDuckVolume() }).catch(() => {});
+});
+
+duckVolumeInput.addEventListener('change', () => {
+  const volume = currentDuckVolume();
+  chrome.storage.sync.set({ duckVolume: volume });
+  chrome.runtime.sendMessage({ action: 'setDuckVolume', volume }).catch(() => {});
 });
 
 document.querySelectorAll('input[name="outputMode"]').forEach(input => {
@@ -132,7 +168,9 @@ function showToast(msg, type) {
 
 // ─── Load saved settings ──────────────────────────────────────────────────────
 (async () => {
-  const s = await chrome.storage.sync.get(['apiKey', 'audioMode', 'outputMode', 'favoriteLanguages']);
+  const s = await chrome.storage.sync.get([
+    'apiKey', 'audioMode', 'outputMode', 'favoriteLanguages', 'duckVolume'
+  ]);
 
   if (s.apiKey) apiKeyInput.value = s.apiKey;
 
@@ -148,6 +186,9 @@ function showToast(msg, type) {
   );
   if (audioEl)  audioEl.checked  = true;  else document.getElementById('tileDuck').checked = true;
   if (outputEl) outputEl.checked = true;  else document.getElementById('tileAudio').checked = true;
+  duckVolumeInput.value = Math.max(1, Math.min(100, Number(s.duckVolume) || 20));
+  renderDuckVolume();
+  updateDuckVolumeVisibility();
 
   buildList();
   updateFavPreview();
