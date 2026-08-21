@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doublage</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 300px;
+      background: #0f1117;
+      color: #e8eaed;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 18px 16px 14px;
+      user-select: none;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #4285f4;
+      letter-spacing: -0.5px;
+    }
+    .logo-tag {
+      font-size: 10px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #4285f4, #a142f4);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    /* ── Status bar ──────────────────────────────────────────────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      background: #1a1d27;
+      border: 1px solid #252836;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3a3f52;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .dot.active {
+      background: #34a853;
+      box-shadow: 0 0 7px #34a85366;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    .status-label {
+      font-size: 13px;
+      color: #8a91a8;
+      flex: 1;
+    }
+    .lang-pill {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6ea8fe;
+      background: rgba(66, 133, 244, 0.12);
+      border: 1px solid rgba(66, 133, 244, 0.25);
+      padding: 2px 9px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Error banner ────────────────────────────────────────────── */
+    .error-banner {
+      background: rgba(198, 40, 40, 0.15);
+      border: 1px solid rgba(198, 40, 40, 0.4);
+      color: #ef9a9a;
+      font-size: 12px;
+      padding: 8px 10px 8px 11px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+    }
+    .error-banner.visible { display: flex; }
+    .error-text { flex: 1; }
+    .error-dismiss {
+      background: none;
+      border: none;
+      color: #ef9a9a;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      padding: 0;
+      flex-shrink: 0;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+    .error-dismiss:hover { opacity: 1; }
+
+    /* ── Favorites quick-pick ────────────────────────────────────── */
+    .fav-section { margin-bottom: 10px; }
+    .fav-header {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #42475a;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+    .fav-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .fav-pill {
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.04);
+      color: #6b7385;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.1px;
+    }
+    .fav-pill:hover {
+      background: rgba(66, 133, 244, 0.1);
+      border-color: rgba(66, 133, 244, 0.28);
+      color: #a8b4cc;
+    }
+    .fav-pill.active {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.22), rgba(26, 106, 219, 0.18));
+      border-color: rgba(66, 133, 244, 0.45);
+      color: #6ea8fe;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px rgba(66, 133, 244, 0.15);
+    }
+    .fav-empty {
+      font-size: 11px;
+      color: #353945;
+      font-style: italic;
+    }
+
+    /* ── Mode controls card ──────────────────────────────────────── */
+    .ctrl-card {
+      background: #1a1d27;
+      border: 1px solid #252836;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ctrl-row + .ctrl-row {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #1e2130;
+    }
+    .ctrl-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #42475a;
+      font-weight: 600;
+      width: 52px;
+      flex-shrink: 0;
+    }
+    .ctrl-btns {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+    }
+    .ctrl-btn {
+      flex: 1;
+      padding: 5px 4px;
+      border-radius: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      color: #525869;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .ctrl-btn:hover {
+      background: rgba(66, 133, 244, 0.09);
+      border-color: rgba(66, 133, 244, 0.22);
+      color: #8a96b4;
+    }
+    .ctrl-btn.active {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.2), rgba(26, 106, 219, 0.16));
+      border-color: rgba(66, 133, 244, 0.42);
+      color: #6ea8fe;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px rgba(66, 133, 244, 0.12);
+    }
+    .ctrl-btn .btn-icon { font-size: 13px; display: block; margin-bottom: 1px; }
+    .ctrl-btn .btn-lbl  { font-size: 10px; display: block; letter-spacing: 0.2px; }
+
+    /* ── Main button ─────────────────────────────────────────────── */
+    .btn-main {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: filter 0.15s, transform 0.1s;
+      margin-bottom: 10px;
+    }
+    .btn-main:active { transform: scale(0.97); }
+    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-main.start {
+      background: linear-gradient(135deg, #4285f4, #1a6adb);
+      color: #fff;
+    }
+    .btn-main.start:not(:disabled):hover { filter: brightness(1.1); }
+    .btn-main.stop {
+      background: linear-gradient(135deg, #e53935, #b71c1c);
+      color: #fff;
+    }
+    .btn-main.stop:not(:disabled):hover { filter: brightness(1.1); }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    .footer {
+      display: flex;
+      justify-content: center;
+    }
+    .link-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #1a1d27;
+      border: 1px solid #303647;
+      border-radius: 8px;
+      color: #a8b4cc;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 9px 12px;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .link-btn:hover {
+      background: rgba(66, 133, 244, 0.12);
+      border-color: rgba(66, 133, 244, 0.45);
+      color: #6ea8fe;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">Doublage</span>
+    <span class="logo-tag">Gemini Live</span>
+  </div>
+
+  <div class="status-bar">
+    <div class="dot" id="statusDot"></div>
+    <span class="status-label" id="statusLabel">Inactive</span>
+    <span class="lang-pill" id="langPill">–</span>
+  </div>
+
+  <div class="error-banner" id="errorBanner">
+    <span class="error-text" id="errorText"></span>
+    <button class="error-dismiss" id="errorDismiss" title="Dismiss">&#x2715;</button>
+  </div>
+
+  <!-- Favorite languages quick-pick -->
+  <div class="fav-section" id="favSection">
+    <div class="fav-header">Choose translation language</div>
+    <div class="fav-pills" id="favPills"></div>
+  </div>
+
+  <!-- Mode controls -->
+  <div class="ctrl-card">
+    <div class="ctrl-row">
+      <span class="ctrl-label">Original</span>
+      <div class="ctrl-btns" id="audioCtrl">
+        <button class="ctrl-btn" id="ctrlMute" title="Mute original audio">
+          <span class="btn-icon">🔇</span>
+          <span class="btn-lbl">Mute</span>
+        </button>
+        <button class="ctrl-btn" id="ctrlDuck" title="Lower original audio volume">
+          <span class="btn-icon">🔉</span>
+          <span class="btn-lbl">Duck</span>
+        </button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">Output</span>
+      <div class="ctrl-btns" id="outputCtrl">
+        <button class="ctrl-btn" id="ctrlAudio" title="Spoken audio translation">
+          <span class="btn-icon">🎙</span>
+          <span class="btn-lbl">Audio</span>
+        </button>
+        <button class="ctrl-btn" id="ctrlText" title="On-screen subtitles">
+          <span class="btn-icon">💬</span>
+          <span class="btn-lbl">Text</span>
+        </button>
+        <button class="ctrl-btn" id="ctrlBoth" title="Spoken audio + subtitles">
+          <span class="btn-icon">🎯</span>
+          <span class="btn-lbl">Both</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-main start" id="mainBtn">
+    <span id="btnIcon">▶</span>
+    <span id="btnText">Start Translation</span>
+  </button>
+
+  <div class="footer">
+    <button class="link-btn" id="settingsBtn" title="Open extension settings">⚙ <span>Settings</span></button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+dist/
+*.zip
+gha-creds-*.json
+.DS_Store

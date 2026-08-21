@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doublage — Settings</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #202124;
+      min-height: 100vh;
+      padding: 40px 16px 60px;
+    }
+
+    .container {
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* ── Page header ──────────────────────────────────────────── */
+    .page-header { margin-bottom: 28px; }
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #4285f4;
+    }
+    .page-subtitle {
+      font-size: 13px;
+      color: #80868b;
+      margin-top: 4px;
+    }
+
+    /* ── Cards ────────────────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.09);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Form fields ──────────────────────────────────────────── */
+    .field { margin-bottom: 18px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap { position: relative; }
+
+    input[type="text"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #dadce0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #202124;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      border-color: #4285f4;
+      box-shadow: 0 0 0 3px #4285f418;
+      background: #fff;
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #80868b;
+      padding: 4px;
+      line-height: 1;
+    }
+    .eye-btn:hover { color: #4285f4; }
+
+    .hint {
+      font-size: 12px;
+      color: #80868b;
+      margin-top: 5px;
+    }
+    .hint a { color: #4285f4; text-decoration: none; }
+    .hint a:hover { text-decoration: underline; }
+
+    /* ── Radio tiles ──────────────────────────────────────────── */
+    .tile-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tile { flex: 1; min-width: 90px; }
+    .tile input[type="radio"] { display: none; }
+    .tile label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 8px;
+      border: 2px solid #dadce0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+      font-size: 13px;
+      color: #5f6368;
+      gap: 4px;
+    }
+    .tile input:checked + label {
+      border-color: #4285f4;
+      background: #e8f0fe;
+      color: #1a56db;
+    }
+    .tile label:hover { border-color: #aaa; }
+    .tile .icon { font-size: 22px; }
+    .tile .desc {
+      font-size: 11px;
+      color: #80868b;
+      text-align: center;
+    }
+    .tile input:checked + label .desc { color: #4285f4; }
+
+    .field-hint {
+      font-size: 12px;
+      color: #80868b;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    /* ── Language search + list ───────────────────────────────── */
+    .search-wrap {
+      position: relative;
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      pointer-events: none;
+    }
+    #langSearch {
+      width: 100%;
+      padding: 9px 12px 9px 34px;
+      border: 1.5px solid #dadce0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      background: #fafafa;
+      transition: border-color 0.2s;
+    }
+    #langSearch:focus {
+      border-color: #4285f4;
+      background: #fff;
+    }
+    .lang-scroll {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid #e8eaed;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .lang-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.12s;
+      gap: 8px;
+    }
+    .lang-item:last-child { border-bottom: none; }
+    .lang-item:hover { background: #f0f4ff; }
+    .lang-item.selected { background: #e8f0fe; }
+    .fav-checkbox {
+      width: 16px;
+      height: 16px;
+      accent-color: #4285f4;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .lang-name {
+      flex: 1;
+      font-size: 13px;
+      color: #202124;
+    }
+    .lang-item.selected .lang-name { color: #1a56db; font-weight: 600; }
+
+    /* ── Favorites preview ────────────────────────────────────── */
+    .fav-preview-wrap {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #e8eaed;
+    }
+    .fav-preview-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #80868b;
+      margin-bottom: 6px;
+    }
+    .fav-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .fav-chip {
+      font-size: 12px;
+      padding: 3px 10px;
+      background: #e8f0fe;
+      color: #1a56db;
+      border-radius: 20px;
+      border: 1px solid #c5d8fc;
+    }
+
+    .toast {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+    .toast.success { background: #e6f4ea; color: #137333; }
+    .toast.error   { background: #fce8e6; color: #c5221f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="page-header">
+      <div class="page-title">Doublage</div>
+      <div class="page-subtitle">Real-time audio translation powered by Gemini Live API</div>
+    </div>
+
+    <!-- API Key -->
+    <div class="card">
+      <div class="card-title">🔑 Gemini API Key</div>
+      <div class="field">
+        <label for="apiKey">API Key</label>
+        <div class="input-wrap">
+          <input type="password" id="apiKey" placeholder="AIza…" autocomplete="off" spellcheck="false" />
+          <button class="eye-btn" id="eyeBtn" title="Show / hide key" type="button">👁</button>
+        </div>
+        <div class="hint">
+          Get a free key at
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">
+            Google AI Studio ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Favorite languages -->
+    <div class="card">
+      <div class="card-title">🌐 Favorite Languages</div>
+      <p class="field-hint">Select the languages you want available in the popup. Choose the translation target from the popup when you start translating.</p>
+
+      <div class="field" style="margin-bottom:10px">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="search" id="langSearch" placeholder="Search 97 languages…" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="lang-scroll">
+        <div id="langList"><!-- populated by JS --></div>
+      </div>
+
+      <div class="fav-preview-wrap" id="favPreviewWrap" style="display:none">
+        <div class="fav-preview-label">Selected favorite languages:</div>
+        <div id="favPreview" class="fav-preview"></div>
+      </div>
+    </div>
+
+    <!-- Original audio behaviour -->
+    <div class="card">
+      <div class="card-title">🔊 Original Tab Audio</div>
+      <div class="field">
+        <label>While translating, the original audio should be</label>
+        <div class="tile-group">
+          <div class="tile">
+            <input type="radio" name="audioMode" id="tileMute" value="mute" />
+            <label for="tileMute">
+              <span class="icon">🔇</span>
+              Muted
+              <span class="desc">Translation only</span>
+            </label>
+          </div>
+          <div class="tile">
+            <input type="radio" name="audioMode" id="tileDuck" value="duck" />
+            <label for="tileDuck">
+              <span class="icon">🔉</span>
+              Ducked
+              <span class="desc">Lowered, under translation</span>
+            </label>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:8px">
+          Applies to the entire captured tab, including Web-Audio–based players.
+        </div>
+      </div>
+    </div>
+
+    <!-- Translation output mode -->
+    <div class="card">
+      <div class="card-title">📤 Translation Output</div>
+      <div class="field">
+        <label>Deliver the translation as</label>
+        <div class="tile-group">
+          <div class="tile">
+            <input type="radio" name="outputMode" id="tileAudio" value="audio" />
+            <label for="tileAudio">
+              <span class="icon">🎙</span>
+              Audio
+              <span class="desc">Spoken voice</span>
+            </label>
+          </div>
+          <div class="tile">
+            <input type="radio" name="outputMode" id="tileText" value="text" />
+            <label for="tileText">
+              <span class="icon">💬</span>
+              Subtitles
+              <span class="desc">On-screen captions</span>
+            </label>
+          </div>
+          <div class="tile">
+            <input type="radio" name="outputMode" id="tileBoth" value="both" />
+            <label for="tileBoth">
+              <span class="icon">🎯</span>
+              Both
+              <span class="desc">Voice + captions</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
