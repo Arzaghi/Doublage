@@ -1,0 +1,114 @@
+name: Build signed CRX and release
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-sign-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The step below only matters if our own version-bump push re-triggers this
+      # workflow. GitHub does not normally re-run `push` workflows for commits made
+      # with GITHUB_TOKEN, but this guard keeps the build idempotent regardless.
+      - name: Skip auto version-bump commit
+        id: skip
+        shell: bash
+        run: |
+          AUTHOR="${{ github.event.head_commit.author.email }}"
+          MODIFIED="${{ join(github.event.head_commit.modified, ',') }}"
+          if [ "$AUTHOR" = "github-actions[bot]@users.noreply.github.com" ] && \
+             [ "$MODIFIED" = "extension/manifest.json" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node
+        if: steps.skip.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.skip.outputs.skip != 'true'
+        run: npm ci
+
+      - name: Restore extension private key
+        if: steps.skip.outputs.skip != 'true'
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.EXTENSION_PRIVATE_KEY }}" ]; then
+            echo "::error title=Missing secret::Set the EXTENSION_PRIVATE_KEY repository " \
+                 "secret to the base64 of your extension.pem private key."
+            exit 1
+          fi
+          printf '%s' "${{ secrets.EXTENSION_PRIVATE_KEY }}" | base64 -d > extension.pem
+          chmod 600 extension.pem
+
+      - name: Bump version and build signed CRX + ZIP
+        if: steps.skip.outputs.skip != 'true'
+        id: build
+        shell: bash
+        run: |
+          node scripts/build.mjs
+          echo "version=$(cat dist/VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifacts
+        if: steps.skip.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: doublage-v${{ steps.build.outputs.version }}
+          path: |
+            dist/Doublage-v${{ steps.build.outputs.version }}.crx
+            dist/Doublage-v${{ steps.build.outputs.version }}.zip
+            dist/VERSION
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: steps.skip.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.build.outputs.version }}
+          name: Doublage v${{ steps.build.outputs.version }}
+          body: |
+            Automatically generated from a push to `master`.
+
+            ## Artifacts
+            - **Signed CRX3** (`Doublage-v${{ steps.build.outputs.version }}.crx`) —
+              installable package for sideloading / enterprise distribution.
+            - **ZIP** (`Doublage-v${{ steps.build.outputs.version }}.zip`) — upload this to
+              the [Chrome Web Store](https://chrome.google.com/webstore/devconsole) to publish.
+          files: |
+            dist/Doublage-v${{ steps.build.outputs.version }}.crx
+            dist/Doublage-v${{ steps.build.outputs.version }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit version bump back to master
+        if: steps.skip.outputs.skip != 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add extension/manifest.json
+          if git diff --cached --quiet; then
+            echo "version bump already committed; nothing to push"
+          else
+            git commit -m "Bump extension version to v${{ steps.build.outputs.version }}"
+            git push origin HEAD:refs/heads/master
+          fi

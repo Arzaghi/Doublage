@@ -44,7 +44,11 @@ extension/
   popup.html / popup.js         Main extension interface
   options.html / options.js     Extension settings
   icons/                        Toolbar and extension icons
-.github/workflows/publish.yml   Chrome Web Store publishing workflow
+scripts/
+  build.mjs                     Bumps the version and builds the signed CRX + ZIP
+dist/                           Build output (CRX, ZIP, version file) — gitignored
+package.json                    Node build-tool dependencies (crx3)
+.github/workflows/build-crx.yml Signed-CRX build and GitHub Release workflow
 ```
 
 ## Privacy and data handling
@@ -60,71 +64,82 @@ Web Store Privacy tab to reflect these practices.
 
 ## Release and Chrome Web Store publishing
 
-Pushing to `main` triggers [`.github/workflows/publish.yml`](./.github/workflows/publish.yml).
-The workflow creates `extension.zip`, uploads it to the existing Chrome Web
-Store item, and submits the uploaded version for publication.
+Every push to `master` triggers
+[`.github/workflows/build-crx.yml`](./.github/workflows/build-crx.yml). The
+workflow automatically:
 
-Chrome Web Store review can still be required; a successful workflow means the
-package was uploaded and submitted, not necessarily that it is immediately
-available to every user.
+1. **Bumps the patch version** in `extension/manifest.json`
+   (e.g. `1.0.0` → `1.0.1`) and commits that bump back to `master`;
+2. signs the extension directory with the stored private key and builds a
+   **signed CRX3** package and a plain **ZIP** (both in the `dist/` directory);
+3. attaches both files to a **GitHub Release** named after the version
+   (`v1.0.1`), where they are ready to download and publish.
 
-### Required rule: bump the manifest version before every release
+### What to do after a push
 
-**Before every push to `main`, increase `extension/manifest.json` → `version`.**
-Chrome Web Store rejects uploads when the uploaded version is not higher than
-the version already in the Store.
+1. Open **Actions** and confirm the "Build signed CRX and release" run passes.
+2. Open the **Releases** page and grab `Doublage-vX.Y.Z.crx` and
+   `Doublage-vX.Y.Z.zip` from the latest release.
+3. Publish from the **ZIP** file — go to the [Chrome Web Store Developer
+   Dashboard](https://chrome.google.com/webstore/devconsole), select the item,
+   and upload the new ZIP. Chrome Web Store generates/owns the key and ID for a
+   ZIP-based item, so you do not need (and cannot reuse) the store ID for a
+   signed CRX.
 
-For example:
+The **signed CRX** is for installing/sideloading the extension outside the
+store (enterprise policy, developer testing, private distribution). Chrome
+derives the extension ID from the public key embedded in the CRX, so:
 
-```json
-{
-  "version": "1.0.1"
-}
-```
+- the first build generates `extension.pem` and that key becomes the ID of the
+  signed CRX;
+- every later release must be signed with **the same key**, otherwise Chrome
+  treats it as a different extension;
+- the store item’s ID (currently `eeefnfeallmjjhfhajgbobpdjhepmdek`) is
+  **independent** of this key — publishing to the store is always done via ZIP.
 
-Use Chrome’s four-part numeric version format when needed, such as
-`1.0.1.0`. Do not reuse an already published version.
+Because the version is bumped automatically, you normally never edit
+`extension/manifest.json` by hand for releases.
+
+### Required rule: version must always increase
+
+Chrome Web Store rejects uploads whose version is not higher than the version
+already in the Store. Each push bumps the patch number, so consecutive releases
+always differ. If the Store already has `1.0.1`, make the next push bump to at
+least `1.0.2`, or raise the committed `extension/manifest.json` version manually
+before pushing. Chrome’s four-part numeric format (`1.0.1.0`) is also supported.
 
 ### Release checklist
 
-1. Test the unpacked extension locally.
-2. Update `extension/manifest.json` with a new, higher version.
-3. Review the Chrome Web Store listing and privacy disclosures if data handling
-   or permissions changed.
-4. Commit all changes.
-5. Push to `main`.
-6. Open the GitHub Actions run and confirm both upload and publish steps pass.
-7. Monitor the Chrome Web Store Developer Dashboard for review status.
+1. Test the unpacked extension locally (`chrome://extensions` → **Load
+   unpacked** → select `extension/`).
+2. Commit your changes and push to `master`.
+3. Confirm the workflow run succeeds and the version bump is committed.
+4. Download the ZIP from the new GitHub Release.
+5. Upload the ZIP in the Chrome Web Store Developer Dashboard and submit for
+   review.
 
-### One-time publishing setup
+### One-time setup: the private key
 
-The workflow updates an **existing** Chrome Web Store item. Create the initial
-listing manually in the Chrome Web Store Developer Dashboard, complete its
-Store Listing and Privacy tabs, and record its extension ID.
+The workflow signs the CRX with a **private key** (`extension.pem`) that must be
+the same on every run. It is retrieved from a GitHub repository secret, so it is
+never stored in the repo.
 
-In GitHub, add the following repository secrets used by `publish.yml`:
+1. Generate once — building locally (`npm run build:crx`) creates it, or pack
+   with Chrome: `chrome --pack-extension=extension`.
+2. Keep `extension.pem` — it is the only key that can recreate the same
+   extension ID for your signed CRX.
+3. Set the repository secret `EXTENSION_PRIVATE_KEY` to the **base64** of that
+   PEM. On any machine:
 
-| Secret | Description |
-| --- | --- |
-| `GOOGLE_CLIENT_ID` | OAuth 2.0 client ID from your Google Cloud project |
-| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 client secret from the same client |
-| `GOOGLE_REFRESH_TOKEN` | Refresh token authorized with the `chromewebstore` scope and the Store-owner account |
-| `CHROME_PUBLISHER_ID` | Publisher ID from Chrome Web Store Developer Dashboard → Publisher settings |
-| `CHROME_EXTENSION_ID` | ID of the initial Chrome Web Store item |
+   ```bash
+   base64 -w0 < extension.pem   # prints the value to store in the secret
+   ```
 
-The OAuth client must be configured in a Google Cloud project with the **Chrome
-Web Store API** enabled. Generate the refresh token using the Google account
-that owns the Chrome Web Store item and the scope:
+4. The workflow fails if the secret is missing, so the CRX ID always stays
+   stable.
 
-```text
-https://www.googleapis.com/auth/chromewebstore
-```
-
-Keep all five values in GitHub Secrets only. Never commit API keys, OAuth
-credentials, refresh tokens, or Chrome Web Store identifiers to source control.
-
-For the official setup and API requirements, see the [Chrome Web Store API
-guide](https://developer.chrome.com/docs/webstore/using-api).
+No other secrets (Google OAuth, publisher ID, etc.) are needed — the old
+auto-publish-to-Web-Store workflow was removed.
 
 ## License
 

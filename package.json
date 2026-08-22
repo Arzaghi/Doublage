@@ -1,0 +1,16 @@
+{
+  "name": "doublage",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build tooling for the Doublage Chrome extension (signed CRX3 packaging).",
+  "type": "module",
+  "scripts": {
+    "build:crx": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "crx3": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

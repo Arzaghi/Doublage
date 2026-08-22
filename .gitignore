@@ -1,4 +1,8 @@
+node_modules/
 dist/
 *.zip
+*.crx
+extension.pem
+Secrets.txt
 gha-creds-*.json
 .DS_Store
