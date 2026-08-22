@@ -7,13 +7,100 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg-primary: #0f1117;
+      --text-primary: #e8eaed;
+      --text-secondary: #8a91a8;
+      --text-muted: #525869;
+      --card-bg: #1a1d27;
+      --card-border: #252836;
+      --card-shadow: none;
+      --status-bg: #1a1d27;
+      --status-border: #252836;
+      --status-label: #8a91a8;
+      --dot-inactive: #3a3f52;
+      --divider: #1e2130;
+      --button-bg: rgba(255, 255, 255, 0.03);
+      --button-border: rgba(255, 255, 255, 0.06);
+      --button-color: #525869;
+      --button-hover-bg: rgba(66, 133, 244, 0.09);
+      --button-hover-border: rgba(66, 133, 244, 0.22);
+      --button-hover-color: #8a96b4;
+      --button-active-bg: linear-gradient(135deg, rgba(66, 133, 244, 0.2), rgba(26, 106, 219, 0.16));
+      --button-active-border: rgba(66, 133, 244, 0.42);
+      --button-active-color: #6ea8fe;
+      --fav-pill-bg: rgba(255, 255, 255, 0.04);
+      --fav-pill-border: rgba(255, 255, 255, 0.07);
+      --fav-pill-color: #6b7385;
+      --fav-pill-hover-bg: rgba(66, 133, 244, 0.1);
+      --fav-pill-hover-border: rgba(66, 133, 244, 0.28);
+      --fav-pill-hover-color: #a8b4cc;
+      --fav-pill-active-bg: linear-gradient(135deg, rgba(66, 133, 244, 0.22), rgba(26, 106, 219, 0.18));
+      --fav-pill-active-border: rgba(66, 133, 244, 0.45);
+      --fav-pill-active-color: #6ea8fe;
+      --fav-header-color: #42475a;
+      --fav-empty-color: #353945;
+      --slider-track: #252836;
+      --slider-val-color: #6ea8fe;
+      --footer-bg: #1a1d27;
+      --footer-border: #303647;
+      --footer-color: #a8b4cc;
+      --footer-hover-bg: rgba(66, 133, 244, 0.12);
+      --footer-hover-border: rgba(66, 133, 244, 0.45);
+      --footer-hover-color: #6ea8fe;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f8f9fa;
+      --text-primary: #1f2328;
+      --text-secondary: #57606a;
+      --text-muted: #6e7781;
+      --card-bg: #ffffff;
+      --card-border: #e1e4e8;
+      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      --status-bg: #ffffff;
+      --status-border: #e1e4e8;
+      --status-label: #57606a;
+      --dot-inactive: #afb8c1;
+      --divider: #eaecef;
+      --button-bg: #f6f8fa;
+      --button-border: #d0d7de;
+      --button-color: #57606a;
+      --button-hover-bg: #eef2ff;
+      --button-hover-border: #adc6ff;
+      --button-hover-color: #1a56db;
+      --button-active-bg: #e8f0fe;
+      --button-active-border: #4285f4;
+      --button-active-color: #1a56db;
+      --fav-pill-bg: #f6f8fa;
+      --fav-pill-border: #d0d7de;
+      --fav-pill-color: #57606a;
+      --fav-pill-hover-bg: #eef2ff;
+      --fav-pill-hover-border: #adc6ff;
+      --fav-pill-hover-color: #1a56db;
+      --fav-pill-active-bg: #e8f0fe;
+      --fav-pill-active-border: #4285f4;
+      --fav-pill-active-color: #1a56db;
+      --fav-header-color: #8c959f;
+      --fav-empty-color: #8c959f;
+      --slider-track: #e1e4e8;
+      --slider-val-color: #1a56db;
+      --footer-bg: #ffffff;
+      --footer-border: #d0d7de;
+      --footer-color: #57606a;
+      --footer-hover-bg: #e8f0fe;
+      --footer-hover-border: #4285f4;
+      --footer-hover-color: #1a56db;
+    }
+
     body {
       width: 300px;
-      background: #0f1117;
-      color: #e8eaed;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       padding: 18px 16px 14px;
       user-select: none;
+      transition: background-color 0.2s, color 0.2s;
     }
 
     /* ── Header ──────────────────────────────────────────────────── */
@@ -44,16 +131,18 @@
       align-items: center;
       gap: 9px;
       padding: 9px 12px;
-      background: #1a1d27;
-      border: 1px solid #252836;
+      background: var(--status-bg);
+      border: 1px solid var(--status-border);
       border-radius: 10px;
+      box-shadow: var(--card-shadow);
       margin-bottom: 10px;
+      transition: background-color 0.2s, border-color 0.2s;
     }
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #3a3f52;
+      background: var(--dot-inactive);
       flex-shrink: 0;
       transition: background 0.3s;
     }
@@ -68,13 +157,13 @@
     }
     .status-label {
       font-size: 13px;
-      color: #8a91a8;
+      color: var(--status-label);
       flex: 1;
     }
     .lang-pill {
       font-size: 11px;
       font-weight: 700;
-      color: #6ea8fe;
+      color: #4285f4;
       background: rgba(66, 133, 244, 0.12);
       border: 1px solid rgba(66, 133, 244, 0.25);
       padding: 2px 9px;
@@ -84,9 +173,9 @@
 
     /* ── Error banner ────────────────────────────────────────────── */
     .error-banner {
-      background: rgba(198, 40, 40, 0.15);
-      border: 1px solid rgba(198, 40, 40, 0.4);
-      color: #ef9a9a;
+      background: rgba(198, 40, 40, 0.12);
+      border: 1px solid rgba(198, 40, 40, 0.35);
+      color: #d93025;
       font-size: 12px;
       padding: 8px 10px 8px 11px;
       border-radius: 8px;
@@ -96,12 +185,17 @@
       gap: 8px;
       line-height: 1.4;
     }
+    [data-theme="dark"] .error-banner {
+      background: rgba(198, 40, 40, 0.15);
+      border-color: rgba(198, 40, 40, 0.4);
+      color: #ef9a9a;
+    }
     .error-banner.visible { display: flex; }
     .error-text { flex: 1; }
     .error-dismiss {
       background: none;
       border: none;
-      color: #ef9a9a;
+      color: inherit;
       cursor: pointer;
       font-size: 15px;
       line-height: 1;
@@ -118,7 +212,7 @@
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.7px;
-      color: #42475a;
+      color: var(--fav-header-color);
       font-weight: 600;
       margin-bottom: 7px;
     }
@@ -130,9 +224,9 @@
     .fav-pill {
       padding: 5px 12px;
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(255, 255, 255, 0.04);
-      color: #6b7385;
+      border: 1px solid var(--fav-pill-border);
+      background: var(--fav-pill-bg);
+      color: var(--fav-pill-color);
       font-size: 12px;
       font-weight: 500;
       cursor: pointer;
@@ -144,48 +238,92 @@
       letter-spacing: 0.1px;
     }
     .fav-pill:hover {
-      background: rgba(66, 133, 244, 0.1);
-      border-color: rgba(66, 133, 244, 0.28);
-      color: #a8b4cc;
+      background: var(--fav-pill-hover-bg);
+      border-color: var(--fav-pill-hover-border);
+      color: var(--fav-pill-hover-color);
     }
     .fav-pill.active {
-      background: linear-gradient(135deg, rgba(66, 133, 244, 0.22), rgba(26, 106, 219, 0.18));
-      border-color: rgba(66, 133, 244, 0.45);
-      color: #6ea8fe;
+      background: var(--fav-pill-active-bg);
+      border-color: var(--fav-pill-active-border);
+      color: var(--fav-pill-active-color);
       font-weight: 600;
       box-shadow: 0 0 0 1px rgba(66, 133, 244, 0.15);
     }
     .fav-empty {
       font-size: 11px;
-      color: #353945;
+      color: var(--fav-empty-color);
       font-style: italic;
     }
 
     /* ── Mode controls card ──────────────────────────────────────── */
     .ctrl-card {
-      background: #1a1d27;
-      border: 1px solid #252836;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 10px;
-      padding: 10px 12px;
+      box-shadow: var(--card-shadow);
+      padding: 11px 12px;
       margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    .ctrl-volume-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ctrl-volume-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ctrl-label-inline {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .ctrl-label-inline .vol-icon {
+      font-size: 13px;
+      line-height: 1;
+    }
+    .ctrl-volume-val {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slider-val-color);
+      min-width: 32px;
+      text-align: right;
+    }
+    .volume-slider {
+      width: 100%;
+      height: 5px;
+      border-radius: 3px;
+      background: var(--slider-track);
+      accent-color: #4285f4;
+      cursor: pointer;
+      outline: none;
+      transition: background-color 0.2s;
     }
     .ctrl-row {
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-    .ctrl-row + .ctrl-row {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid #1e2130;
+      padding-top: 10px;
+      border-top: 1px solid var(--divider);
     }
     .ctrl-label {
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
-      color: #42475a;
+      color: var(--text-muted);
       font-weight: 600;
-      width: 52px;
+      width: 48px;
       flex-shrink: 0;
     }
     .ctrl-btns {
@@ -197,9 +335,9 @@
       flex: 1;
       padding: 5px 4px;
       border-radius: 7px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.03);
-      color: #525869;
+      border: 1px solid var(--button-border);
+      background: var(--button-bg);
+      color: var(--button-color);
       font-size: 11px;
       font-weight: 500;
       cursor: pointer;
@@ -209,14 +347,14 @@
       line-height: 1.3;
     }
     .ctrl-btn:hover {
-      background: rgba(66, 133, 244, 0.09);
-      border-color: rgba(66, 133, 244, 0.22);
-      color: #8a96b4;
+      background: var(--button-hover-bg);
+      border-color: var(--button-hover-border);
+      color: var(--button-hover-color);
     }
     .ctrl-btn.active {
-      background: linear-gradient(135deg, rgba(66, 133, 244, 0.2), rgba(26, 106, 219, 0.16));
-      border-color: rgba(66, 133, 244, 0.42);
-      color: #6ea8fe;
+      background: var(--button-active-bg);
+      border-color: var(--button-active-border);
+      color: var(--button-active-color);
       font-weight: 600;
       box-shadow: 0 0 0 1px rgba(66, 133, 244, 0.12);
     }
@@ -244,11 +382,13 @@
     .btn-main.start {
       background: linear-gradient(135deg, #4285f4, #1a6adb);
       color: #fff;
+      box-shadow: 0 2px 6px rgba(66, 133, 244, 0.35);
     }
     .btn-main.start:not(:disabled):hover { filter: brightness(1.1); }
     .btn-main.stop {
       background: linear-gradient(135deg, #e53935, #b71c1c);
       color: #fff;
+      box-shadow: 0 2px 6px rgba(229, 57, 53, 0.35);
     }
     .btn-main.stop:not(:disabled):hover { filter: brightness(1.1); }
 
@@ -263,10 +403,11 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      background: #1a1d27;
-      border: 1px solid #303647;
+      background: var(--footer-bg);
+      border: 1px solid var(--footer-border);
       border-radius: 8px;
-      color: #a8b4cc;
+      box-shadow: var(--card-shadow);
+      color: var(--footer-color);
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -274,9 +415,9 @@
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
     .link-btn:hover {
-      background: rgba(66, 133, 244, 0.12);
-      border-color: rgba(66, 133, 244, 0.45);
-      color: #6ea8fe;
+      background: var(--footer-hover-bg);
+      border-color: var(--footer-hover-border);
+      color: var(--footer-hover-color);
     }
   </style>
 </head>
@@ -305,18 +446,14 @@
 
   <!-- Mode controls -->
   <div class="ctrl-card">
-    <div class="ctrl-row">
-      <span class="ctrl-label">Original</span>
-      <div class="ctrl-btns" id="audioCtrl">
-        <button class="ctrl-btn" id="ctrlMute" title="Mute original audio">
-          <span class="btn-icon">🔇</span>
-          <span class="btn-lbl">Mute</span>
-        </button>
-        <button class="ctrl-btn" id="ctrlDuck" title="Lower original audio volume">
-          <span class="btn-icon">🔉</span>
-          <span class="btn-lbl">Duck</span>
-        </button>
+    <div class="ctrl-volume-section">
+      <div class="ctrl-volume-header">
+        <label for="duckVolume" class="ctrl-label-inline">
+          <span class="vol-icon" id="volIcon">🔉</span> Original Audio Volume
+        </label>
+        <output class="ctrl-volume-val" id="duckVolumeVal">20%</output>
       </div>
+      <input type="range" class="volume-slider" id="duckVolume" min="0" max="100" value="20" step="1" title="Original audio volume" />
     </div>
     <div class="ctrl-row">
       <span class="ctrl-label">Output</span>

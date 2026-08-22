@@ -1,35 +1,58 @@
 'use strict';
 
-const statusDot    = document.getElementById('statusDot');
-const statusLabel  = document.getElementById('statusLabel');
-const langPill     = document.getElementById('langPill');
-const errorBanner  = document.getElementById('errorBanner');
-const errorText    = document.getElementById('errorText');
-const errorDismiss = document.getElementById('errorDismiss');
-const favPills     = document.getElementById('favPills');
-const mainBtn      = document.getElementById('mainBtn');
-const btnIcon      = document.getElementById('btnIcon');
-const btnText      = document.getElementById('btnText');
-const settingsBtn  = document.getElementById('settingsBtn');
+const statusDot       = document.getElementById('statusDot');
+const statusLabel     = document.getElementById('statusLabel');
+const langPill        = document.getElementById('langPill');
+const errorBanner     = document.getElementById('errorBanner');
+const errorText       = document.getElementById('errorText');
+const errorDismiss    = document.getElementById('errorDismiss');
+const favPills        = document.getElementById('favPills');
+const mainBtn         = document.getElementById('mainBtn');
+const btnIcon         = document.getElementById('btnIcon');
+const btnText         = document.getElementById('btnText');
+const settingsBtn     = document.getElementById('settingsBtn');
 
-// Control buttons
-const ctrlMute  = document.getElementById('ctrlMute');
-const ctrlDuck  = document.getElementById('ctrlDuck');
-const ctrlAudio = document.getElementById('ctrlAudio');
-const ctrlText  = document.getElementById('ctrlText');
-const ctrlBoth  = document.getElementById('ctrlBoth');
+// Control sliders & buttons
+const duckVolumeInput = document.getElementById('duckVolume');
+const duckVolumeVal   = document.getElementById('duckVolumeVal');
+const volIcon         = document.getElementById('volIcon');
+const ctrlAudio       = document.getElementById('ctrlAudio');
+const ctrlText        = document.getElementById('ctrlText');
+const ctrlBoth        = document.getElementById('ctrlBoth');
 
-let translating      = false;
-let currentLang      = 'English';
-let favList          = [];
-let currentAudioMode = 'duck';
+let translating       = false;
+let currentLang       = 'English';
+let favList           = [];
 let currentOutputMode = 'audio';
+
+// ─── Theme Management ─────────────────────────────────────────────────────────
+function applyTheme(themeSetting) {
+  let effective = themeSetting;
+  if (!themeSetting || themeSetting === 'system') {
+    effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', effective);
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  chrome.storage.sync.get('theme').then(({ theme }) => {
+    if (!theme || theme === 'system') applyTheme('system');
+  });
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes.theme) {
+    applyTheme(changes.theme.newValue);
+  }
+});
 
 // ─── Initialise ───────────────────────────────────────────────────────────────
 async function init() {
   const s = await chrome.storage.sync.get([
-    'targetLanguage', 'audioMode', 'outputMode', 'apiKey', 'favoriteLanguages'
+    'targetLanguage', 'outputMode', 'apiKey', 'favoriteLanguages', 'duckVolume', 'theme'
   ]);
+
+  applyTheme(s.theme || 'system');
 
   const hasSavedFavorites = Array.isArray(s.favoriteLanguages);
   favList           = hasSavedFavorites ? s.favoriteLanguages : ['English'];
@@ -38,8 +61,13 @@ async function init() {
   currentLang       = favList.includes(s.targetLanguage)
     ? s.targetLanguage
     : (favList[0] || 'English');
-  currentAudioMode  = s.audioMode       || 'duck';
   currentOutputMode = s.outputMode      || 'audio';
+
+  const volume = Number.isFinite(s.duckVolume)
+    ? Math.max(0, Math.min(100, Number(s.duckVolume)))
+    : 20;
+  duckVolumeInput.value = volume;
+  renderDuckVolume();
 
   if (currentLang !== s.targetLanguage || !hasSavedFavorites) {
     await chrome.storage.sync.set({
@@ -104,23 +132,24 @@ async function selectFavorite(lang) {
   }
 }
 
-// ─── Mode controls ────────────────────────────────────────────────────────────
+// ─── Mode controls & Audio Volume ─────────────────────────────────────────────
+function currentDuckVolume() {
+  return Math.max(0, Math.min(100, Number(duckVolumeInput.value) || 0));
+}
+
+function renderDuckVolume() {
+  const vol = currentDuckVolume();
+  duckVolumeVal.textContent = `${vol}%`;
+  if (volIcon) {
+    volIcon.textContent = vol === 0 ? '🔇' : (vol < 50 ? '🔉' : '🔊');
+  }
+}
+
 function renderControls() {
-  // Audio mode
-  ctrlMute.classList.toggle('active', currentAudioMode === 'mute');
-  ctrlDuck.classList.toggle('active', currentAudioMode === 'duck');
   // Output mode
   ctrlAudio.classList.toggle('active', currentOutputMode === 'audio');
   ctrlText.classList.toggle('active',  currentOutputMode === 'text');
   ctrlBoth.classList.toggle('active',  currentOutputMode === 'both');
-}
-
-async function setAudioMode(mode) {
-  if (mode === currentAudioMode) return;
-  currentAudioMode = mode;
-  renderControls();
-  // Save and propagate to tab immediately
-  await chrome.runtime.sendMessage({ action: 'setAudioMode', mode });
 }
 
 async function setOutputMode(mode) {
@@ -130,8 +159,17 @@ async function setOutputMode(mode) {
   await chrome.runtime.sendMessage({ action: 'updateOutputMode', mode });
 }
 
-ctrlMute.addEventListener('click',  () => setAudioMode('mute'));
-ctrlDuck.addEventListener('click',  () => setAudioMode('duck'));
+duckVolumeInput.addEventListener('input', () => {
+  renderDuckVolume();
+  chrome.runtime.sendMessage({ action: 'previewDuckVolume', volume: currentDuckVolume() }).catch(() => {});
+});
+
+duckVolumeInput.addEventListener('change', async () => {
+  const volume = currentDuckVolume();
+  await chrome.storage.sync.set({ duckVolume: volume });
+  await chrome.runtime.sendMessage({ action: 'setDuckVolume', volume }).catch(() => {});
+});
+
 ctrlAudio.addEventListener('click', () => setOutputMode('audio'));
 ctrlText.addEventListener('click',  () => setOutputMode('text'));
 ctrlBoth.addEventListener('click',  () => setOutputMode('both'));
@@ -236,4 +274,3 @@ function sleep(ms) {
 }
 
 init();
-

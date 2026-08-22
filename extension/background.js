@@ -38,7 +38,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'previewDuckVolume' || message.action === 'setDuckVolume') {
-    const volume = Math.max(1, Math.min(100, Number(message.volume) || 20));
+    const rawVolume = Number(message.volume);
+    const volume = Number.isFinite(rawVolume) ? Math.max(0, Math.min(100, rawVolume)) : 20;
     if (message.action === 'setDuckVolume') {
       chrome.storage.sync.set({ duckVolume: volume });
     }
@@ -136,7 +137,9 @@ async function handleStartTranslation() {
       targetLanguage:  settings.targetLanguage  || 'English',
       audioMode:       settings.audioMode       || 'duck',
       outputMode:      settings.outputMode      || 'audio',
-      duckVolume:      Math.max(1, Math.min(100, Number(settings.duckVolume) || 20))
+      duckVolume:      Number.isFinite(settings.duckVolume)
+        ? Math.max(0, Math.min(100, Number(settings.duckVolume)))
+        : 20
     }
   });
 

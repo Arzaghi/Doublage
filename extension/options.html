@@ -7,59 +7,158 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg-primary: #f0f2f5;
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --text-muted: #80868b;
+      --card-bg: #ffffff;
+      --card-border: rgba(0, 0, 0, 0.06);
+      --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      --input-bg: #fafafa;
+      --input-border: #dadce0;
+      --list-bg: #fafafa;
+      --list-border: #e8eaed;
+      --list-divider: #f0f0f0;
+      --list-hover: #f0f4ff;
+      --list-selected: #e8f0fe;
+      --list-selected-text: #1a56db;
+      --chip-bg: #e8f0fe;
+      --chip-border: #c5d8fc;
+      --chip-color: #1a56db;
+      --chip-remove: #5f84d8;
+      --chip-remove-hover-bg: #c5d8fc;
+      --chip-remove-hover-color: #174ea6;
+      --seg-bg: #f0f2f5;
+      --seg-border: #dadce0;
+      --seg-active-bg: #ffffff;
+      --seg-active-color: #1a56db;
+      --seg-active-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      --footer-color: #80868b;
+      --footer-hover-color: #202124;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0f1117;
+      --text-primary: #e8eaed;
+      --text-secondary: #9aa0a6;
+      --text-muted: #6b7385;
+      --card-bg: #1a1d27;
+      --card-border: #252836;
+      --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      --input-bg: #12141c;
+      --input-border: #2e3346;
+      --list-bg: #12141c;
+      --list-border: #252836;
+      --list-divider: #1c202d;
+      --list-hover: rgba(66, 133, 244, 0.12);
+      --list-selected: rgba(66, 133, 244, 0.22);
+      --list-selected-text: #8ab4f8;
+      --chip-bg: rgba(66, 133, 244, 0.18);
+      --chip-border: rgba(66, 133, 244, 0.4);
+      --chip-color: #8ab4f8;
+      --chip-remove: #8ab4f8;
+      --chip-remove-hover-bg: rgba(66, 133, 244, 0.35);
+      --chip-remove-hover-color: #fff;
+      --seg-bg: #12141c;
+      --seg-border: #252836;
+      --seg-active-bg: #252836;
+      --seg-active-color: #8ab4f8;
+      --seg-active-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --footer-color: #6b7385;
+      --footer-hover-color: #e8eaed;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f0f2f5;
-      color: #202124;
-      min-height: 100vh;
-      padding: 40px 16px 60px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 22px 20px 14px;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.2s, color 0.2s;
     }
 
     .container {
-      max-width: 540px;
+      max-width: 580px;
+      width: 100%;
       margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
     }
 
     /* ── Page header ──────────────────────────────────────────── */
-    .page-header { margin-bottom: 28px; }
+    .page-header {
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
     .page-title {
       font-size: 26px;
       font-weight: 700;
       color: #4285f4;
+      display: flex;
+      align-items: center;
+      gap: 9px;
     }
     .page-subtitle {
       font-size: 13px;
-      color: #80868b;
+      color: var(--text-muted);
       margin-top: 4px;
     }
 
     /* ── Cards ────────────────────────────────────────────────── */
     .card {
-      background: #fff;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 14px;
-      padding: 22px 20px;
-      margin-bottom: 14px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.09);
+      padding: 16px 18px;
+      margin-bottom: 11px;
+      box-shadow: var(--card-shadow);
+      transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .card.api-card {
+      flex-shrink: 0;
+    }
+    .card.theme-card {
+      flex-shrink: 0;
+      padding: 8px 14px;
+    }
+    .card.lang-card {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 8px;
     }
     .card-title {
       font-size: 14px;
       font-weight: 600;
-      color: #444;
-      margin-bottom: 16px;
+      color: var(--text-primary);
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
+    }
+    .gemini-icon {
+      flex-shrink: 0;
     }
 
-    /* ── Form fields ──────────────────────────────────────────── */
-    .field { margin-bottom: 18px; }
+    /* ── Form fields ──────────────────────────────────── */
+    .field { margin-bottom: 12px; }
     .field:last-child { margin-bottom: 0; }
 
     label {
       display: block;
       font-size: 12px;
       font-weight: 600;
-      color: #5f6368;
+      color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 6px;
@@ -71,21 +170,20 @@
     input[type="password"],
     select {
       width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid #dadce0;
+      padding: 9px 12px;
+      border: 1.5px solid var(--input-border);
       border-radius: 8px;
       font-size: 14px;
-      color: #202124;
-      background: #fafafa;
+      color: var(--text-primary);
+      background: var(--input-bg);
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s;
     }
     input[type="text"]:focus,
     input[type="password"]:focus,
     select:focus {
       border-color: #4285f4;
-      box-shadow: 0 0 0 3px #4285f418;
-      background: #fff;
+      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.18);
     }
 
     .eye-btn {
@@ -97,93 +195,117 @@
       border: none;
       cursor: pointer;
       font-size: 16px;
-      color: #80868b;
+      color: var(--text-muted);
       padding: 4px;
       line-height: 1;
+      transition: color 0.15s;
     }
     .eye-btn:hover { color: #4285f4; }
 
     .hint {
       font-size: 12px;
-      color: #80868b;
+      color: var(--text-muted);
       margin-top: 5px;
     }
-    .hint a { color: #4285f4; text-decoration: none; }
+    .hint a { color: #4285f4; text-decoration: none; font-weight: 500; }
     .hint a:hover { text-decoration: underline; }
-
-    /* ── Radio tiles ──────────────────────────────────────────── */
-    .tile-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .tile { flex: 1; min-width: 90px; }
-    .tile input[type="radio"] { display: none; }
-    .tile label {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 12px 8px;
-      border: 2px solid #dadce0;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.18s;
-      text-transform: none;
-      letter-spacing: 0;
-      font-weight: 500;
-      font-size: 13px;
-      color: #5f6368;
-      gap: 4px;
-    }
-    .tile input:checked + label {
-      border-color: #4285f4;
-      background: #e8f0fe;
-      color: #1a56db;
-    }
-    .tile label:hover { border-color: #aaa; }
-    .tile .icon { font-size: 22px; }
-    .tile .desc {
-      font-size: 11px;
-      color: #80868b;
-      text-align: center;
-    }
-    .tile input:checked + label .desc { color: #4285f4; }
-
-    .duck-volume {
-      margin-top: 16px;
-      padding: 13px 14px;
-      border: 1px solid #d9e2f6;
-      border-radius: 10px;
-      background: #f7faff;
-    }
-    .duck-volume[hidden] { display: none; }
-    .duck-volume-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-    .duck-volume-header label { margin: 0; }
-    .duck-volume-value {
-      min-width: 40px;
-      color: #1a56db;
-      font-size: 13px;
-      font-weight: 700;
-      text-align: right;
-    }
-    #duckVolume { width: 100%; accent-color: #4285f4; cursor: pointer; }
 
     .field-hint {
       font-size: 12px;
-      color: #80868b;
+      color: var(--text-muted);
       margin-bottom: 10px;
       line-height: 1.5;
+      flex-shrink: 0;
+    }
+
+    /* ── Minimal Appearance theme selector ────────────────────── */
+    .theme-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    .theme-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .theme-segmented {
+      display: flex;
+      flex: 1;
+      width: 100%;
+      background: var(--seg-bg);
+      border: 1px solid var(--seg-border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+      align-items: stretch;
+    }
+    .theme-seg-btn {
+      flex: 1;
+      display: flex;
+      cursor: pointer;
+      position: relative;
+      margin: 0;
+    }
+    .theme-seg-btn input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+      margin: 0;
+    }
+    .theme-seg-content {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1;
+      color: var(--text-secondary);
+      transition: all 0.18s ease;
+      user-select: none;
+      white-space: nowrap;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .theme-seg-icon {
+      font-size: 14px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .theme-seg-text {
+      line-height: 1;
+      display: inline-block;
+    }
+    .theme-seg-btn:hover .theme-seg-content {
+      color: var(--text-primary);
+    }
+    .theme-seg-btn input:checked + .theme-seg-content {
+      background: var(--seg-active-bg);
+      color: var(--seg-active-color);
+      font-weight: 600;
+      box-shadow: var(--seg-active-shadow);
     }
 
     /* ── Language search + list ───────────────────────────────── */
     .search-wrap {
       position: relative;
+      flex-shrink: 0;
+      margin-bottom: 8px;
     }
     .search-icon {
       position: absolute;
@@ -192,40 +314,42 @@
       transform: translateY(-50%);
       font-size: 14px;
       pointer-events: none;
+      color: var(--text-muted);
     }
     #langSearch {
       width: 100%;
-      padding: 9px 12px 9px 34px;
-      border: 1.5px solid #dadce0;
+      padding: 8px 12px 8px 34px;
+      border: 1.5px solid var(--input-border);
       border-radius: 8px;
       font-size: 14px;
       outline: none;
-      background: #fafafa;
-      transition: border-color 0.2s;
+      background: var(--input-bg);
+      color: var(--text-primary);
+      transition: border-color 0.2s, background-color 0.2s, color 0.2s;
     }
     #langSearch:focus {
       border-color: #4285f4;
-      background: #fff;
     }
     .lang-scroll {
-      max-height: 240px;
+      flex: 1;
+      min-height: 120px;
       overflow-y: auto;
-      border: 1px solid #e8eaed;
+      border: 1px solid var(--list-border);
       border-radius: 8px;
-      background: #fafafa;
+      background: var(--list-bg);
     }
     .lang-item {
       display: flex;
       align-items: center;
-      padding: 8px 10px;
+      padding: 7px 10px;
       cursor: pointer;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--list-divider);
       transition: background 0.12s;
       gap: 8px;
     }
     .lang-item:last-child { border-bottom: none; }
-    .lang-item:hover { background: #f0f4ff; }
-    .lang-item.selected { background: #e8f0fe; }
+    .lang-item:hover { background: var(--list-hover); }
+    .lang-item.selected { background: var(--list-selected); }
     .fav-checkbox {
       width: 16px;
       height: 16px;
@@ -236,60 +360,64 @@
     .lang-name {
       flex: 1;
       font-size: 13px;
-      color: #202124;
+      color: var(--text-primary);
     }
-    .lang-item.selected .lang-name { color: #1a56db; font-weight: 600; }
+    .lang-item.selected .lang-name { color: var(--list-selected-text); font-weight: 600; }
 
     /* ── Favorites preview ────────────────────────────────────── */
     .fav-preview-wrap {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid #e8eaed;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--list-border);
+      flex-shrink: 0;
+      max-height: 80px;
+      overflow-y: auto;
     }
     .fav-preview-label {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #80868b;
-      margin-bottom: 6px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
     }
     .fav-preview {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 5px;
     }
     .fav-chip {
       display: inline-flex;
       align-items: center;
       gap: 5px;
       font-size: 12px;
-      padding: 3px 5px 3px 10px;
-      background: #e8f0fe;
-      color: #1a56db;
+      padding: 2px 5px 2px 9px;
+      background: var(--chip-bg);
+      color: var(--chip-color);
       border-radius: 20px;
-      border: 1px solid #c5d8fc;
+      border: 1px solid var(--chip-border);
     }
     .fav-chip-remove {
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
       padding: 0;
       border: none;
       border-radius: 50%;
       background: transparent;
-      color: #5f84d8;
-      font-size: 16px;
+      color: var(--chip-remove);
+      font-size: 15px;
       line-height: 1;
       cursor: pointer;
     }
-    .fav-chip-remove:hover { background: #c5d8fc; color: #174ea6; }
+    .fav-chip-remove:hover { background: var(--chip-remove-hover-bg); color: var(--chip-remove-hover-color); }
 
     .toast {
-      margin-top: 10px;
-      padding: 10px 14px;
+      margin-top: 8px;
+      padding: 9px 12px;
       border-radius: 8px;
       font-size: 13px;
       text-align: center;
       display: none;
+      flex-shrink: 0;
     }
     .toast.success { background: #e6f4ea; color: #137333; }
     .toast.error   { background: #fce8e6; color: #c5221f; }
@@ -299,19 +427,21 @@
       align-items: center;
       justify-content: center;
       gap: 9px;
-      margin: 22px 0 4px;
-      color: #80868b;
+      margin-top: auto;
+      padding-top: 10px;
+      color: var(--footer-color);
       font-size: 12px;
+      flex-shrink: 0;
     }
     .settings-footer .heart { color: #ff0000; }
     .github-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: #5f6368;
+      color: var(--footer-color);
       transition: color 0.15s, transform 0.15s;
     }
-    .github-link:hover { color: #24292f; transform: translateY(-1px); }
+    .github-link:hover { color: var(--footer-hover-color); transform: translateY(-1px); }
     .github-link svg { width: 17px; height: 17px; fill: currentColor; }
   </style>
 </head>
@@ -324,8 +454,20 @@
     </div>
 
     <!-- API Key -->
-    <div class="card">
-      <div class="card-title">🔑 Gemini API Key</div>
+    <div class="card api-card">
+      <div class="card-title">
+        <svg class="gemini-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <defs>
+            <linearGradient id="geminiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4285F4" />
+              <stop offset="50%" stop-color="#9B72CB" />
+              <stop offset="100%" stop-color="#D96570" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#geminiGrad)" d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12Z"/>
+        </svg>
+        Google Gemini API Key
+      </div>
       <div class="field">
         <label for="apiKey">API Key</label>
         <div class="input-wrap">
@@ -341,16 +483,44 @@
       </div>
     </div>
 
+    <!-- Minimal Appearance / Theme Selection -->
+    <div class="card theme-card">
+      <div class="theme-row">
+        <span class="theme-label">🎨 Appearance</span>
+        <div class="theme-segmented">
+          <label class="theme-seg-btn" title="Follow Chrome / system theme">
+            <input type="radio" name="theme" value="system" id="themeSystem" checked />
+            <span class="theme-seg-content">
+              <span class="theme-seg-icon">💻</span>
+              <span class="theme-seg-text">System</span>
+            </span>
+          </label>
+          <label class="theme-seg-btn" title="Always light theme">
+            <input type="radio" name="theme" value="light" id="themeLight" />
+            <span class="theme-seg-content">
+              <span class="theme-seg-icon">☀️</span>
+              <span class="theme-seg-text">Light</span>
+            </span>
+          </label>
+          <label class="theme-seg-btn" title="Always dark theme">
+            <input type="radio" name="theme" value="dark" id="themeDark" />
+            <span class="theme-seg-content">
+              <span class="theme-seg-icon">🌙</span>
+              <span class="theme-seg-text">Dark</span>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- Favorite languages -->
-    <div class="card">
+    <div class="card lang-card">
       <div class="card-title">🌐 Favorite Languages</div>
       <p class="field-hint">Select the languages you want available in the popup. Choose the translation target from the popup when you start translating.</p>
 
-      <div class="field" style="margin-bottom:10px">
-        <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input type="search" id="langSearch" placeholder="Search 97 languages…" autocomplete="off" />
-        </div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="langSearch" placeholder="Search 97 languages…" autocomplete="off" />
       </div>
 
       <div class="lang-scroll">
@@ -360,78 +530,6 @@
       <div class="fav-preview-wrap" id="favPreviewWrap" style="display:none">
         <div class="fav-preview-label">Selected favorite languages:</div>
         <div id="favPreview" class="fav-preview"></div>
-      </div>
-    </div>
-
-    <!-- Original audio behaviour -->
-    <div class="card">
-      <div class="card-title">🔊 Original Tab Audio</div>
-      <div class="field">
-        <label>While translating, the original audio should be</label>
-        <div class="tile-group">
-          <div class="tile">
-            <input type="radio" name="audioMode" id="tileMute" value="mute" />
-            <label for="tileMute">
-              <span class="icon">🔇</span>
-              Muted
-              <span class="desc">Translation only</span>
-            </label>
-          </div>
-          <div class="tile">
-            <input type="radio" name="audioMode" id="tileDuck" value="duck" />
-            <label for="tileDuck">
-              <span class="icon">🔉</span>
-              Ducked
-              <span class="desc">Lowered, under translation</span>
-            </label>
-          </div>
-        </div>
-        <div class="duck-volume" id="duckVolumeControl" hidden>
-          <div class="duck-volume-header">
-            <label for="duckVolume">Duck volume</label>
-            <output class="duck-volume-value" id="duckVolumeValue">20%</output>
-          </div>
-          <input type="range" id="duckVolume" min="1" max="100" value="20" step="1"
-                 aria-describedby="duckVolumeHint" />
-          <div class="hint" id="duckVolumeHint">Original tab volume while translation is active.</div>
-        </div>
-        <div class="hint" style="margin-top:8px">
-          Applies to the entire captured tab, including Web-Audio–based players.
-        </div>
-      </div>
-    </div>
-
-    <!-- Translation output mode -->
-    <div class="card">
-      <div class="card-title">📤 Translation Output</div>
-      <div class="field">
-        <label>Deliver the translation as</label>
-        <div class="tile-group">
-          <div class="tile">
-            <input type="radio" name="outputMode" id="tileAudio" value="audio" />
-            <label for="tileAudio">
-              <span class="icon">🎙</span>
-              Audio
-              <span class="desc">Spoken voice</span>
-            </label>
-          </div>
-          <div class="tile">
-            <input type="radio" name="outputMode" id="tileText" value="text" />
-            <label for="tileText">
-              <span class="icon">💬</span>
-              Subtitles
-              <span class="desc">On-screen captions</span>
-            </label>
-          </div>
-          <div class="tile">
-            <input type="radio" name="outputMode" id="tileBoth" value="both" />
-            <label for="tileBoth">
-              <span class="icon">🎯</span>
-              Both
-              <span class="desc">Voice + captions</span>
-            </label>
-          </div>
-        </div>
       </div>
     </div>
 

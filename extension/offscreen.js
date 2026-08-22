@@ -37,7 +37,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === 'updateSettings') {
     if (currentSettings && message.settings) {
       Object.assign(currentSettings, message.settings);
-      if (message.settings.audioMode || message.settings.duckVolume) setOriginalAudioMode();
+      if (message.settings.audioMode || Number.isFinite(message.settings.duckVolume)) {
+        setOriginalAudioMode();
+      }
     }
     sendResponse({ success: true });
     return false;
@@ -86,7 +88,7 @@ async function startCapture(streamId, settings) {
   nullGainNode.connect(captureAudioContext.destination);
 
   // 3 ── tabCapture suppresses normal tab playback. Replay the captured audio
-  // at the native sample rate through a gain node, so Mute/Duck applies to all
+  // at the native sample rate through a gain node, so volume control applies to all
   // sites, including players built with the Web Audio API.
   originalAudioContext = new AudioContext();
   originalSourceNode = originalAudioContext.createMediaStreamSource(capturedStream);
@@ -140,7 +142,8 @@ function handleAudioInput(float32) {
 function setOriginalAudioMode(mode = currentSettings?.audioMode) {
   if (!originalGainNode || !originalAudioContext) return;
 
-  const duckVolume = Math.max(1, Math.min(100, Number(currentSettings?.duckVolume) || 20));
+  const rawVolume = Number(currentSettings?.duckVolume);
+  const duckVolume = Number.isFinite(rawVolume) ? Math.max(0, Math.min(100, rawVolume)) : 20;
   const gain = mode === 'mute' ? 0 : duckVolume / 100;
   originalGainNode.gain.setTargetAtTime(gain, originalAudioContext.currentTime, 0.02);
 }
