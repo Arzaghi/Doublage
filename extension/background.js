@@ -82,7 +82,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Notifications from offscreen document
   if (message.target === 'background') {
     if (message.action === 'subtitle') {
-      forwardSubtitleToTab(message.text);
+      forwardSubtitleToTab(message.text, message.lang);
     } else if (message.action === 'translationError') {
       handleTranslationError(message.error);
     } else if (message.action === 'geminiReady') {
@@ -251,9 +251,9 @@ function handleTranslationError(error) {
   broadcastStatus(false, error);
 }
 
-function forwardSubtitleToTab(text) {
+function forwardSubtitleToTab(text, lang) {
   if (activeTabId) {
-    chrome.tabs.sendMessage(activeTabId, { action: 'showSubtitle', text }).catch(() => {});
+    chrome.tabs.sendMessage(activeTabId, { action: 'showSubtitle', text, lang }).catch(() => {});
   }
 }
 

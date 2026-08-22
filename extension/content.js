@@ -1,5 +1,11 @@
 'use strict';
 
+// RTL languages list for text direction detection
+const RTL_LANGUAGES = new Set([
+  'Arabic', 'Hebrew', 'Persian', 'Urdu', 'Pashto', 'Sindhi', 'Kurdish',
+  'Uyghur', 'Divehi', 'Syriac', 'Thaana'
+]);
+
 // Guard against double-injection (content_scripts may run on every navigation)
 if (!window.__doublageInjected) {
   window.__doublageInjected = true;
@@ -13,33 +19,44 @@ if (!window.__doublageInjected) {
     left:            '50%',
     transform:       'translateX(-50%)',
     zIndex:          '2147483647',
-    maxWidth:        '78%',
-    minWidth:        '180px',
+    width:           '640px',
+    maxWidth:        '90vw',
+    minHeight:       '80px',
     background:      'rgba(0, 0, 0, 0.84)',
     color:           '#ffffff',
-    fontSize:        '17px',
+    fontSize:        '16px',
     fontFamily:      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     lineHeight:      '1.55',
-    padding:         '10px 22px',
+    padding:         '10px 18px',
     borderRadius:    '10px',
-    textAlign:       'center',
+    textAlign:       'left',
+    direction:       'ltr',
     pointerEvents:   'none',
     display:         'none',
     wordWrap:        'break-word',
+    overflowWrap:    'break-word',
+    whiteSpace:      'pre-wrap',
     border:          '1px solid rgba(66, 133, 244, 0.45)',
     boxShadow:       '0 4px 24px rgba(0,0,0,0.55)',
     opacity:         '0',
     transition:      'opacity 0.25s ease',
     backdropFilter:  'blur(4px)',
     webkitBackdropFilter: 'blur(4px)',
+    boxSizing:       'border-box',
   });
   document.documentElement.appendChild(overlay);
 
   let hideTimer = null;
 
-  function showSubtitle(text) {
+  function showSubtitle(text, lang) {
     if (!text) { fadeOut(); return; }
-    overlay.textContent   = text;
+
+    // Set text direction based on language
+    const isRtl = RTL_LANGUAGES.has(lang);
+    overlay.style.direction = isRtl ? 'rtl' : 'ltr';
+    overlay.style.textAlign = isRtl ? 'right' : 'left';
+
+    overlay.textContent = text;
     overlay.style.display = 'block';
     // Force reflow so transition fires
     void overlay.offsetWidth;
@@ -95,7 +112,7 @@ if (!window.__doublageInjected) {
   chrome.runtime.onMessage.addListener((message) => {
     switch (message.action) {
       case 'showSubtitle':
-        showSubtitle(message.text);
+        showSubtitle(message.text, message.lang || '');
         break;
 
       case 'hideSubtitle':

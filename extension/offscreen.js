@@ -16,9 +16,13 @@ let currentSettings     = null;
 
 let audioOutputQueue    = [];     // PCM buffers waiting to be played
 let isPlayingAudio      = false;
-let subtitleBuffer      = '';
-let subtitleClearTimer  = null;
-let toolbarPulseTimer   = null;
+
+// Subtitle state: fixed 500-char rolling buffer
+let subtitleBuffer     = '';
+let subtitleClearTimer = null;
+let toolbarPulseTimer  = null;
+
+const SUBTITLE_MAX_CHARS = 500;
 
 // ─── Message handler ──────────────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -163,6 +167,64 @@ function stopToolbarPulse() {
   toolbarPulseTimer = null;
 }
 
+// ─── Subtitle Cue Processor (Movie-Style 1-2 Lines Windowing) ─────────────────
+function processSubtitleChunk(newText) {
+  const now = Date.now();
+  // If there has been a pause between utterances (> 2.8 s), start a fresh subtitle cue
+  if (now - lastSubtitleTime > 2800) {
+    currentSubtitleChunk = '';
+  }
+  lastSubtitleTime = now;
+
+  currentSubtitleChunk += newText;
+  const trimmed = currentSubtitleChunk.trim();
+  if (!trimmed) return;
+
+  // Split into sentence-like clauses based on punctuation and newlines
+  const sentenceRegex = /[^.!?。！？\n]+[.!?。！？\n]*/g;
+  const matches = trimmed.match(sentenceRegex) || [trimmed];
+
+  let displayCue = '';
+  if (matches.length > 1) {
+    const last = matches[matches.length - 1].trim();
+    const prev = matches[matches.length - 2].trim();
+
+    // If the combined previous and current sentence is short, show both (max 2 lines)
+    if (last.length < 32 && (prev + ' ' + last).length <= 80) {
+      displayCue = prev + ' ' + last;
+    } else {
+      displayCue = last;
+      // Truncate the buffer to only keep the active sentence
+      currentSubtitleChunk = last;
+    }
+  } else {
+    displayCue = matches[0].trim();
+    // If a sentence without punctuation grows too long (> 90 chars), keep the last clause at a word boundary
+    if (displayCue.length > 90) {
+      const words = displayCue.split(/\s+/);
+      let shortCue = '';
+      for (let i = words.length - 1; i >= 0; i--) {
+        const candidate = words.slice(i).join(' ');
+        if (candidate.length <= 75) {
+          shortCue = candidate;
+        } else {
+          break;
+        }
+      }
+      displayCue = shortCue || displayCue.slice(-75);
+      currentSubtitleChunk = displayCue;
+    }
+  }
+
+  notifySubtitle(displayCue);
+
+  clearTimeout(subtitleClearTimer);
+  subtitleClearTimer = setTimeout(() => {
+    currentSubtitleChunk = '';
+    notifySubtitle('');
+  }, 2800);
+}
+
 // ─── Gemini Live WebSocket ────────────────────────────────────────────────────
 function connectToGemini(settings) {
   return new Promise((resolve, reject) => {
@@ -263,17 +325,21 @@ function connectToGemini(settings) {
 
       const translatedText = data.serverContent?.outputTranscription?.text;
       if (translatedText && (mode === 'text' || mode === 'both')) {
+        // Append text; if buffer exceeds cap, clear and start fresh
+        if (subtitleBuffer.length + translatedText.length > SUBTITLE_MAX_CHARS) {
+          subtitleBuffer = '';
+        }
         subtitleBuffer += translatedText;
         notifySubtitle(subtitleBuffer);
       }
 
-      // ── Turn complete — schedule subtitle clear
+      // ── Turn complete — schedule subtitle clear after a pause
       if (data.serverContent?.turnComplete) {
         clearTimeout(subtitleClearTimer);
         subtitleClearTimer = setTimeout(() => {
           subtitleBuffer = '';
           notifySubtitle('');
-        }, 3500);
+        }, 4000);
       }
     };
 
@@ -373,12 +439,14 @@ async function stopCapture() {
   isPlayingAudio     = false;
   subtitleBuffer     = '';
   clearTimeout(subtitleClearTimer);
+  notifySubtitle('');
   currentSettings    = null;
 }
 
 // ─── Background notifications ─────────────────────────────────────────────────
 function notifySubtitle(text) {
-  chrome.runtime.sendMessage({ target: 'background', action: 'subtitle', text }).catch(() => {});
+  const lang = currentSettings?.targetLanguage || '';
+  chrome.runtime.sendMessage({ target: 'background', action: 'subtitle', text, lang }).catch(() => {});
 }
 
 function notifyError(error) {
