@@ -31,6 +31,17 @@ const langList       = document.getElementById('langList');
 const favPreviewWrap = document.getElementById('favPreviewWrap');
 const favPreview     = document.getElementById('favPreview');
 const toast          = document.getElementById('toast');
+const versionSpan    = document.getElementById('versionSpan');
+const versionText    = document.getElementById('version');
+
+// ─── Display extension version ─────────────────────────────────────────────────
+if (versionText) {
+  const manifest = chrome.runtime.getManifest();
+  if (manifest?.version) {
+    versionText.textContent = manifest.version;
+    if (versionSpan) versionSpan.style.display = 'inline';
+  }
+}
 
 // ─── Appearance / Theme ───────────────────────────────────────────────────────
 function applyTheme(themeSetting) {

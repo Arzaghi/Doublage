@@ -1,114 +1,183 @@
-name: Build signed CRX and release
+name: Release on version tag
 
 on:
   push:
-    branches:
-      - master
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  build-sign-and-release:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v7
 
-      # The step below only matters if our own version-bump push re-triggers this
-      # workflow. GitHub does not normally re-run `push` workflows for commits made
-      # with GITHUB_TOKEN, but this guard keeps the build idempotent regardless.
-      - name: Skip auto version-bump commit
-        id: skip
+      # Extract and validate the tag version
+      - name: Validate and extract tag version
+        id: tag
         shell: bash
         run: |
-          AUTHOR="${{ github.event.head_commit.author.email }}"
-          MODIFIED="${{ join(github.event.head_commit.modified, ',') }}"
-          if [ "$AUTHOR" = "github-actions[bot]@users.noreply.github.com" ] && \
-             [ "$MODIFIED" = "extension/manifest.json" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+          TAG="${{ github.ref }}"
+          TAG="${TAG#refs/tags/}"
+          
+          # Validate tag format: vX.Y.Z
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Error: Git tag '$TAG' does not match expected format vX.Y.Z (e.g., v1.0.0)"
+            exit 1
           fi
+          
+          # Extract version without 'v' prefix
+          TAG_VERSION="${TAG#v}"
+          echo "tag_version=$TAG_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "✓ Tag validated: $TAG → version $TAG_VERSION"
+
+      # Read and validate the manifest version
+      - name: Read manifest version
+        id: manifest
+        shell: bash
+        run: |
+          if [ ! -f "extension/manifest.json" ]; then
+            echo "❌ Error: extension/manifest.json not found"
+            exit 1
+          fi
+          
+          MANIFEST_VERSION=$(jq -r '.version' extension/manifest.json 2>/dev/null)
+          
+          if [ -z "$MANIFEST_VERSION" ] || [ "$MANIFEST_VERSION" = "null" ]; then
+            echo "❌ Error: extension/manifest.json does not define a version"
+            exit 1
+          fi
+          
+          # Validate version format: X.Y.Z
+          if ! [[ "$MANIFEST_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Error: manifest.json version '$MANIFEST_VERSION' is not a valid Chrome extension version"
+            echo "Expected format: X.Y.Z (e.g., 1.0.0)"
+            exit 1
+          fi
+          
+          echo "manifest_version=$MANIFEST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "✓ Manifest version: $MANIFEST_VERSION"
+
+      # Validate that tag version matches manifest version
+      - name: Validate version match
+        shell: bash
+        run: |
+          TAG_VERSION="${{ steps.tag.outputs.tag_version }}"
+          MANIFEST_VERSION="${{ steps.manifest.outputs.manifest_version }}"
+          
+          if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "❌ Error: Git tag version does not match manifest version"
+            echo "  Tag:      ${{ steps.tag.outputs.tag_name }} → $TAG_VERSION"
+            echo "  Manifest: $MANIFEST_VERSION"
+            echo ""
+            echo "Release tag must exactly match the version in extension/manifest.json."
+            echo "Please correct the tag or manifest.json version."
+            exit 1
+          fi
+          
+          echo "✓ Versions match: $TAG_VERSION"
 
       - name: Set up Node
-        if: steps.skip.outputs.skip != 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
 
       - name: Install dependencies
-        if: steps.skip.outputs.skip != 'true'
         run: npm ci
 
+      # Restore the extension private key from GitHub Secrets
       - name: Restore extension private key
-        if: steps.skip.outputs.skip != 'true'
         shell: bash
         run: |
           if [ -z "${{ secrets.EXTENSION_PRIVATE_KEY }}" ]; then
-            echo "::error title=Missing secret::Set the EXTENSION_PRIVATE_KEY repository " \
-                 "secret to the base64 of your extension.pem private key."
+            echo "❌ Error: EXTENSION_PRIVATE_KEY repository secret not set."
+            echo "Please add your base64-encoded extension.pem as a repository secret."
             exit 1
           fi
           printf '%s' "${{ secrets.EXTENSION_PRIVATE_KEY }}" | base64 -d > extension.pem
           chmod 600 extension.pem
+          echo "✓ Private key restored"
 
-      - name: Bump version and build signed CRX + ZIP
-        if: steps.skip.outputs.skip != 'true'
-        id: build
+      # Build the signed CRX3 and ZIP
+      - name: Build signed CRX3 and ZIP
+        shell: bash
+        run: node scripts/build.mjs
+
+      # Verify that the build artifacts were created
+      - name: Verify build artifacts
         shell: bash
         run: |
-          node scripts/build.mjs
-          echo "version=$(cat dist/VERSION)" >> "$GITHUB_OUTPUT"
+          VERSION="${{ steps.manifest.outputs.manifest_version }}"
+          
+          # Check that all expected artifacts exist
+          [ -f "dist/Doublage-v${VERSION}.crx" ] || {
+            echo "❌ Error: CRX file not created at dist/Doublage-v${VERSION}.crx"
+            exit 1
+          }
+          
+          [ -f "dist/Doublage-v${VERSION}.zip" ] || {
+            echo "❌ Error: ZIP file not created at dist/Doublage-v${VERSION}.zip"
+            exit 1
+          }
+          
+          [ -f "dist/VERSION" ] || {
+            echo "❌ Error: VERSION file not created at dist/VERSION"
+            exit 1
+          }
+          
+          # Verify dist/VERSION contains the correct version
+          DIST_VERSION=$(cat dist/VERSION)
+          if [ "$DIST_VERSION" != "$VERSION" ]; then
+            echo "❌ Error: dist/VERSION contains '$DIST_VERSION' but manifest version is '$VERSION'"
+            exit 1
+          fi
+          
+          echo "✓ All build artifacts verified"
+          echo "  - dist/Doublage-v${VERSION}.crx"
+          echo "  - dist/Doublage-v${VERSION}.zip"
+          echo "  - dist/VERSION: $DIST_VERSION"
 
+      # Upload build artifacts to GitHub Actions for easy access
       - name: Upload build artifacts
-        if: steps.skip.outputs.skip != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: doublage-v${{ steps.build.outputs.version }}
+          name: Doublage-v${{ steps.manifest.outputs.manifest_version }}
           path: |
-            dist/Doublage-v${{ steps.build.outputs.version }}.crx
-            dist/Doublage-v${{ steps.build.outputs.version }}.zip
+            dist/Doublage-v${{ steps.manifest.outputs.manifest_version }}.crx
+            dist/Doublage-v${{ steps.manifest.outputs.manifest_version }}.zip
             dist/VERSION
           if-no-files-found: error
 
+      # Create GitHub Release and attach artifacts
       - name: Create GitHub Release
-        if: steps.skip.outputs.skip != 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ steps.build.outputs.version }}
-          name: Doublage v${{ steps.build.outputs.version }}
+          tag_name: ${{ steps.tag.outputs.tag_name }}
+          name: Doublage ${{ steps.tag.outputs.tag_name }}
           body: |
-            Automatically generated from a push to `master`.
+            ## Release ${{ steps.tag.outputs.tag_name }}
 
-            ## Artifacts
-            - **Signed CRX3** (`Doublage-v${{ steps.build.outputs.version }}.crx`) —
-              installable package for sideloading / enterprise distribution.
-            - **ZIP** (`Doublage-v${{ steps.build.outputs.version }}.zip`) — upload this to
-              the [Chrome Web Store](https://chrome.google.com/webstore/devconsole) to publish.
+            Released from tag matching manifest version `${{ steps.manifest.outputs.manifest_version }}`.
+
+            ### Artifacts
+
+            - **Doublage-v${{ steps.manifest.outputs.manifest_version }}.crx** — Signed CRX3 package
+              - Installable via sideloading or enterprise policy
+              - For local testing or private distribution
+
+            - **Doublage-v${{ steps.manifest.outputs.manifest_version }}.zip** — Web Store package
+              - Upload this to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+              - Use this to publish updates
+
           files: |
-            dist/Doublage-v${{ steps.build.outputs.version }}.crx
-            dist/Doublage-v${{ steps.build.outputs.version }}.zip
+            dist/Doublage-v${{ steps.manifest.outputs.manifest_version }}.crx
+            dist/Doublage-v${{ steps.manifest.outputs.manifest_version }}.zip
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit version bump back to master
-        if: steps.skip.outputs.skip != 'true'
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add extension/manifest.json
-          if git diff --cached --quiet; then
-            echo "version bump already committed; nothing to push"
-          else
-            git commit -m "Bump extension version to v${{ steps.build.outputs.version }}"
-            git push origin HEAD:refs/heads/master
-          fi

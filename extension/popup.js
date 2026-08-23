@@ -141,7 +141,7 @@ function renderDuckVolume() {
   const vol = currentDuckVolume();
   duckVolumeVal.textContent = `${vol}%`;
   if (volIcon) {
-    volIcon.textContent = vol === 0 ? '🔇' : (vol < 50 ? '🔉' : '🔊');
+    volIcon.textContent = vol === 0 ? '🔇' : (vol <= 50 ? '🔉' : '🔊');
   }
 }
 

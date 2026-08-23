@@ -5,11 +5,12 @@
  *   node scripts/build.mjs
  *
  * Behaviour:
- *   1. Reads extension/manifest.json and bumps the patch version (1.0.0 -> 1.0.1).
- *   2. Writes the bumped manifest back to extension/manifest.json.
- *   3. Packs extension/ into a CRX3 file signed with the extension private key
+ *   1. Reads extension/manifest.json.
+ *   2. Uses the version specified in manifest.json (does NOT modify the manifest).
+ *   3. Validates that the version is a valid Chrome extension version (X.Y.Z format).
+ *   4. Packs extension/ into a CRX3 file signed with the extension private key
  *      (extension.pem by default) plus a plain ZIP for Chrome Web Store upload.
- *   4. Writes the new version to dist/VERSION and prints the output paths.
+ *   5. Writes the version to dist/VERSION and prints the output paths.
  *
  * Environment:
  *   EXTENSION_KEY_PATH - optional path to the private key (default: <repo>/extension.pem).
@@ -30,14 +31,24 @@ const DIST = join(ROOT, 'dist');
 const KEY_PATH = process.env.EXTENSION_KEY_PATH || join(ROOT, 'extension.pem');
 const EXTENSION_NAME = 'Doublage';
 
-// ---- 1. Bump the patch version -------------------------------------------------
+// ---- 1. Read and validate the manifest version --------------------------------
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
-const parts = String(manifest.version ?? '0.0.0').split('.').map((p) => parseInt(p, 10) || 0);
-while (parts.length < 3) parts.push(0);
-parts[parts.length - 1] += 1;
-const version = parts.join('.');
-manifest.version = version;
-writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + '\n');
+const version = manifest.version;
+
+if (!version) {
+  console.error('❌ Error: extension/manifest.json does not define a version.');
+  process.exit(1);
+}
+
+// Validate Chrome extension version format: X.Y.Z where X, Y, Z are non-negative integers.
+const versionRegex = /^\d+(\.\d+){2}$/;
+if (!versionRegex.test(version)) {
+  console.error(
+    `❌ Error: extension/manifest.json version "${version}" is not a valid Chrome extension version.`
+  );
+  console.error('Expected format: X.Y.Z (e.g., 1.0.0)');
+  process.exit(1);
+}
 
 // ---- 2. Build the signed CRX3 + ZIP -------------------------------------------
 mkdirSync(DIST, { recursive: true });
@@ -57,8 +68,8 @@ execFileSync(process.execPath, [crx3Bin, '-z', zipPath, '-p', KEY_PATH, '-o', cr
   stdio: 'inherit',
 });
 
-// ---- 3. Record the new version -------------------------------------------------
+// ---- 3. Record the version (without modifying manifest) -------------------------
 writeFileSync(join(DIST, 'VERSION'), version + '\n');
-console.log(`Doublage v${version} built:`);
+console.log(`✓ Doublage v${version} built:`);
 console.log(`  CRX: ${crxPath}`);
 console.log(`  ZIP: ${zipPath}`);
