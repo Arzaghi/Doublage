@@ -123,6 +123,26 @@ Releases are created by pushing a Git tag that matches the version in
 5. Download the ZIP from [Releases](../../releases) and upload to the
    [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 
+## Automated Gemini API Integration Test
+
+[`tests/gemini-integration.test.mjs`](./tests/gemini-integration.test.mjs) connects to the real Gemini Live API and verifies the extension's translation pipeline still works: authentication, WebSocket setup, model availability, and the audio-send protocol.
+
+Runs on every push to `master` and **daily at 07:00 UTC** to catch external API changes even when no code has been pushed.
+
+Run the tests locally using a Gemini API key:
+
+```bash
+# Linux / macOS
+GEMINI_API_KEY=<your-test-key> npm run test:gemini
+```
+
+```powershell
+# Windows (PowerShell)
+$env:GEMINI_API_KEY="<your-test-key>"; npm run test:gemini
+```
+
+---
+
 ## License
 
 Copyright © 2026 Hamid Reza Arzaghi

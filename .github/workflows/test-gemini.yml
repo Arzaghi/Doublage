@@ -1,0 +1,48 @@
+name: Gemini API Integration Test
+
+# Runs on every push to master, daily at 07:00 UTC, and on manual dispatch.
+# The purpose is to detect external Gemini API regressions even when no code
+# has been pushed (the scheduled run catches changes on Google's side).
+on:
+  push:
+    branches:
+      - master
+
+  schedule:
+    # 07:00 UTC daily — chosen to run early in the European working day so
+    # failures are visible before the start of the work day.
+    - cron: '0 7 * * *'
+
+  # Allow manual runs from the Actions tab for debugging.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gemini-integration-test:
+    name: Gemini Live API smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10   # hard ceiling; the test itself handles per-phase timeouts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # GEMINI_API_KEY is stored as a GitHub Secret (Settings → Secrets and
+      # variables → Actions → GEMINI_API_KEY).  It is passed as an environment
+      # variable only — never printed, never echoed, never written to a file,
+      # never included in step outputs or artifacts.
+      - name: Run Gemini integration test
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: npm run test:gemini
