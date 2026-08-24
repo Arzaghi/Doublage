@@ -16,12 +16,27 @@ original tab audio while translation is active.
 
 ## Screenshots
 
-| Dark theme | Light theme |
-| :-: | :-: |
-| ![Doublage main popup – dark theme](./screenshots/popup-dark.png) | ![Doublage main popup – light theme](./screenshots/popup-light.png) |
+<table>
+   <thead>
+      <tr>
+         <th><div align="center">Main Page</div></th>
+         <th><div align="center">Settings</div></th>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td valign="top">
+            <img src="./screenshots/main.png" alt="Doublage main popup" />
+         </td>
+         <td valign="top">
+            <img src="./screenshots/settings.png" alt="Doublage settings" />
+         </td>
+      </tr>
+   </tbody>
+</table>
 
 The main popup lets you pick a translation language, adjust the original-audio
-volume, choose spoken audio and/or subtitles, and start translation with one
+volume, choose spoken audio and/or subtitles, and start/stop translation with one
 click.
 
 ## Requirements
@@ -80,30 +95,30 @@ Releases are created by pushing a Git tag that matches the version in
 
 ### Release steps
 
-1. Update the `version` field in `extension/manifest.json`:
+1. Update the `version` field in `extension/manifest.json`, For example:
 
    ```json
-   "version": "1.0.1"
+   "version": "1.3.0"
    ```
 
 2. Commit and push:
 
    ```bash
    git add extension/manifest.json
-   git commit -m "Release v1.0.1"
+   git commit -m "Release v1.3.0"
    git push origin master
    ```
 
 3. Create and push the version tag (tag must match manifest version):
 
    ```bash
-   git tag v1.0.1
-   git push origin v1.0.1
+   git tag v1.3.0
+   git push origin v1.3.0
    ```
 
 4. GitHub Actions will automatically build and create a GitHub Release with:
-   - `Doublage-v1.0.1.crx` � Signed CRX3 package for sideloading/testing
-   - `Doublage-v1.0.1.zip` � Plain ZIP for Chrome Web Store upload
+   - `Doublage-v1.3.0.crx` : Signed CRX3 package for sideloading/testing
+   - `Doublage-v1.3.0.zip` : Plain ZIP for Chrome Web Store upload
 
 5. Download the ZIP from [Releases](../../releases) and upload to the
    [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
