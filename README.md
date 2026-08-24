@@ -88,6 +88,27 @@ download or execute remotely hosted JavaScript or WebAssembly.
 Before publishing, provide an accurate privacy policy and complete the Chrome
 Web Store Privacy tab to reflect these practices.
 
+## Building locally
+
+```bash
+npm install
+npm run build:crx
+```
+
+Outputs `Doublage-x.y.z.crx` and `Doublage-x.y.z.zip` in `dist/`.
+The CRX requires a private key for create a signed crx (`extension.pem` in the repo root by default).
+Set a custom path with the `EXTENSION_KEY_PATH` environment variable:
+
+```bash
+# Linux / macOS
+EXTENSION_KEY_PATH=/path/to/key.pem npm run build:crx
+```
+
+```powershell
+# Windows (PowerShell)
+$env:EXTENSION_KEY_PATH="C:\path\to\key.pem"; npm run build:crx
+```
+
 ## Release and Chrome Web Store publishing
 
 Releases are created by pushing a Git tag that matches the version in
