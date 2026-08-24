@@ -1,5 +1,10 @@
 # Doublage
 
+[![Latest release](https://img.shields.io/github/v/release/Arzaghi/Doublage?logo=github&label=release)](https://github.com/Arzaghi/Doublage/releases/latest)
+[![Gemini API test](https://github.com/Arzaghi/Doublage/actions/workflows/test-gemini.yml/badge.svg)](https://github.com/Arzaghi/Doublage/actions/workflows/test-gemini.yml)
+[![Build CRX](https://github.com/Arzaghi/Doublage/actions/workflows/build-crx.yml/badge.svg)](https://github.com/Arzaghi/Doublage/actions/workflows/build-crx.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
 **Doublage** is a Manifest V3 Google Chrome extension that translates audio from the
 currently active browser tab in real time with the Gemini Live API. It can play
 the translated voice, display translated subtitles, and lower or mute the
