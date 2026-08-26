@@ -18,7 +18,7 @@
       --status-bg: #1a1d27;
       --status-border: #252836;
       --status-label: #8a91a8;
-      --dot-inactive: #3a3f52;
+      --dot-ready: #3a3f52;
       --divider: #1e2130;
       --button-bg: rgba(255, 255, 255, 0.03);
       --button-border: rgba(255, 255, 255, 0.06);
@@ -61,7 +61,7 @@
       --status-bg: #ffffff;
       --status-border: #e1e4e8;
       --status-label: #57606a;
-      --dot-inactive: #afb8c1;
+      --dot-ready: #afb8c1;
       --divider: #eaecef;
       --button-bg: #f6f8fa;
       --button-border: #d0d7de;
@@ -142,7 +142,7 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--dot-inactive);
+      background: var(--dot-ready);
       flex-shrink: 0;
       transition: background 0.3s;
     }
@@ -208,13 +208,41 @@
 
     /* ── Favorites quick-pick ────────────────────────────────────── */
     .fav-section { margin-bottom: 10px; }
+    .fav-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
     .fav-header {
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.7px;
       color: var(--fav-header-color);
       font-weight: 600;
-      margin-bottom: 7px;
+    }
+    .add-lang-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(66, 133, 244, 0.45);
+      background: rgba(66, 133, 244, 0.15);
+      color: #4285f4;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    .add-lang-btn:hover {
+      background: rgba(66, 133, 244, 0.28);
+      border-color: rgba(66, 133, 244, 0.7);
+      color: #6ea8fe;
     }
     .fav-pills {
       display: flex;
@@ -429,7 +457,7 @@
 
   <div class="status-bar">
     <div class="dot" id="statusDot"></div>
-    <span class="status-label" id="statusLabel">Inactive</span>
+    <span class="status-label" id="statusLabel">Ready</span>
     <span class="lang-pill" id="langPill">–</span>
   </div>
 
@@ -440,7 +468,10 @@
 
   <!-- Favorite languages quick-pick -->
   <div class="fav-section" id="favSection">
-    <div class="fav-header">Choose translation language</div>
+    <div class="fav-header-row">
+      <div class="fav-header">Choose translation language</div>
+      <button class="add-lang-btn" id="addLangBtn" title="Add languages in Settings">+</button>
+    </div>
     <div class="fav-pills" id="favPills"></div>
   </div>
 

@@ -11,6 +11,7 @@ const mainBtn         = document.getElementById('mainBtn');
 const btnIcon         = document.getElementById('btnIcon');
 const btnText         = document.getElementById('btnText');
 const settingsBtn     = document.getElementById('settingsBtn');
+const addLangBtn      = document.getElementById('addLangBtn');
 
 // Control sliders & buttons
 const duckVolumeInput = document.getElementById('duckVolume');
@@ -231,6 +232,7 @@ errorDismiss.addEventListener('click', async () => {
 });
 
 settingsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
+addLangBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
 
 // ─── Status updates from background ──────────────────────────────────────────
 chrome.runtime.onMessage.addListener((message) => {
@@ -249,7 +251,7 @@ function setActive(active) {
   translating = active;
 
   statusDot.className     = 'dot' + (active ? ' active' : '');
-  statusLabel.textContent = active ? 'Translating…' : 'Inactive';
+  statusLabel.textContent = active ? 'Translating…' : 'Ready';
 
   mainBtn.className   = 'btn-main ' + (active ? 'stop' : 'start');
   btnIcon.textContent = active ? '■' : '▶';

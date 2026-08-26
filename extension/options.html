@@ -410,17 +410,55 @@
     }
     .fav-chip-remove:hover { background: var(--chip-remove-hover-bg); color: var(--chip-remove-hover-color); }
 
-    .toast {
-      margin-top: 8px;
-      padding: 9px 12px;
+    /* ── Save button ──────────────────────────────────────────── */
+    .save-section {
+      flex-shrink: 0;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .save-btn {
+      width: auto;
+      padding: 7px 28px;
       border-radius: 8px;
+      border: 2px solid var(--card-border);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: not-allowed;
+      transition: all 0.2s ease;
+      background: var(--card-bg);
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+    .save-btn.dirty {
+      background: linear-gradient(135deg, #4285f4, #1a6adb);
+      color: #fff;
+      font-weight: 700;
+      border-color: transparent;
+      box-shadow: 0 3px 10px rgba(66, 133, 244, 0.4);
+      opacity: 1;
+      cursor: pointer;
+    }
+    .save-btn.dirty:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 4px 14px rgba(66, 133, 244, 0.5);
+    }
+    .save-msg {
       font-size: 13px;
       text-align: center;
-      display: none;
-      flex-shrink: 0;
+      color: #137333;
+      padding: 9px 12px;
+      background: #e6f4ea;
+      border-radius: 8px;
+      margin-top: 7px;
+      visibility: hidden;
     }
-    .toast.success { background: #e6f4ea; color: #137333; }
-    .toast.error   { background: #fce8e6; color: #c5221f; }
+    [data-theme="dark"] .save-msg {
+      background: rgba(52, 168, 83, 0.15);
+      color: #81c995;
+      border: 1px solid rgba(52, 168, 83, 0.25);
+    }
 
     .settings-footer {
       display: flex;
@@ -559,7 +597,10 @@
       </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <div class="save-section">
+      <button class="save-btn" id="saveBtn" disabled>💾 Save Settings</button>
+      <div class="save-msg" id="saveMsg">✓ Configuration saved</div>
+    </div>
 
     <footer class="settings-footer">
       <span>Open source ·</span>

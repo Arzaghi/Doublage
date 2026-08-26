@@ -21,7 +21,7 @@ const ALL_LANGUAGES = [
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let favorites = [];
-let apiKeySaveTimer = null;
+let dirty     = false;
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const apiKeyInput    = document.getElementById('apiKey');
@@ -30,7 +30,8 @@ const langSearch     = document.getElementById('langSearch');
 const langList       = document.getElementById('langList');
 const favPreviewWrap = document.getElementById('favPreviewWrap');
 const favPreview     = document.getElementById('favPreview');
-const toast          = document.getElementById('toast');
+const saveBtn        = document.getElementById('saveBtn');
+const saveMsg        = document.getElementById('saveMsg');
 const versionSpan    = document.getElementById('versionSpan');
 const versionText    = document.getElementById('version');
 
@@ -61,9 +62,8 @@ function updateThemeRadios(theme) {
 document.querySelectorAll('input[name="theme"]').forEach(radio => {
   radio.addEventListener('change', () => {
     if (!radio.checked) return;
-    const theme = radio.value;
-    chrome.storage.sync.set({ theme });
-    applyTheme(theme);
+    applyTheme(radio.value);
+    markDirty();
   });
 });
 
@@ -119,7 +119,7 @@ function toggleFavorite(lang) {
   }
   buildList(langSearch.value);
   updateFavPreview();
-  chrome.storage.sync.set({ favoriteLanguages: favorites });
+  markDirty();
 }
 
 function updateFavPreview() {
@@ -153,24 +153,32 @@ eyeBtn.addEventListener('click', () => {
   eyeBtn.textContent = hidden ? '🙈' : '👁';
 });
 
-// ─── Save changes immediately ─────────────────────────────────────────────────
-function saveApiKey() {
-  clearTimeout(apiKeySaveTimer);
-  chrome.storage.sync.set({ apiKey: apiKeyInput.value.trim() });
+apiKeyInput.addEventListener('input', markDirty);
+
+// ─── Dirty tracking & Save ────────────────────────────────────────────────────
+function markDirty() {
+  if (dirty) return;
+  dirty = true;
+  saveBtn.disabled = false;
+  saveBtn.classList.add('dirty');
+  saveMsg.style.visibility = 'hidden';
 }
 
-apiKeyInput.addEventListener('input', () => {
-  clearTimeout(apiKeySaveTimer);
-  apiKeySaveTimer = setTimeout(saveApiKey, 450);
-});
-apiKeyInput.addEventListener('blur', saveApiKey);
-
-function showToast(msg, type) {
-  toast.textContent   = msg;
-  toast.className     = 'toast ' + type;
-  toast.style.display = 'block';
-  setTimeout(() => { toast.style.display = 'none'; }, 3000);
+async function saveAllSettings() {
+  const theme = document.querySelector('input[name="theme"]:checked')?.value || 'system';
+  await chrome.storage.sync.set({
+    apiKey: apiKeyInput.value.trim(),
+    favoriteLanguages: favorites,
+    theme,
+  });
+  dirty = false;
+  saveBtn.disabled = true;
+  saveBtn.classList.remove('dirty');
+  saveMsg.style.visibility = 'visible';
+  setTimeout(() => { saveMsg.style.visibility = 'hidden'; }, 3000);
 }
+
+saveBtn.addEventListener('click', saveAllSettings);
 
 // ─── Load saved settings ──────────────────────────────────────────────────────
 (async () => {
