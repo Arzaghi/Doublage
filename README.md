@@ -3,20 +3,21 @@
 [![Latest release](https://img.shields.io/github/v/release/Arzaghi/Doublage?logo=github&label=release)](https://github.com/Arzaghi/Doublage/releases/latest)
 [![Gemini API test](https://github.com/Arzaghi/Doublage/actions/workflows/test-gemini.yml/badge.svg)](https://github.com/Arzaghi/Doublage/actions/workflows/test-gemini.yml)
 [![Build CRX](https://github.com/Arzaghi/Doublage/actions/workflows/build-crx.yml/badge.svg)](https://github.com/Arzaghi/Doublage/actions/workflows/build-crx.yml)
+[![Chrome Web Store version](https://img.shields.io/chrome-web-store/v/eeefnfeallmjjhfhajgbobpdjhepmdek)](https://chromewebstore.google.com/detail/doublage/eeefnfeallmjjhfhajgbobpdjhepmdek)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 <p align="center">
    <img src="./screenshots/Marquee_promo_tile.png" alt="Doublage banner" width="100%" />
 </p>
 
-**Doublage** is a Manifest V3 Google Chrome extension that translates audio from the
+**Doublage** is a Manifest V3 Chromium-based browser extension that translates audio from the
 currently active browser tab in real time with the Gemini Live API. It can play
 the translated voice, display translated subtitles, and lower or mute the
 original tab audio while translation is active.
 
 ## Features
 
-- Real-time Google Chrome tab-audio translation using Gemini Live
+- Real-time browser tab-audio translation using Gemini Live
 - Spoken translation, subtitles, or both
 - Original-audio controls: duck or mute
 - Fast target-language selection and saved user preferences
@@ -50,14 +51,15 @@ click.
 
 ## Requirements
 
-- Google Chrome 116 or later
+- Any recent Chromium-based browser (Chrome, Edge, Opera, Brave)
 - A Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 - A Gemini API key with access to the Gemini Live API
 
 ## Local development
 
 1. Clone this repository.
-2. Open `chrome://extensions` in Chrome.
+2. Open your browser extension management page
+   (`chrome://extensions`, `edge://extensions`, `opera://extensions`, or `brave://extensions`).
 3. Enable **Developer mode**.
 4. Click **Load unpacked**.
 5. Select the [`extension`](./extension) directory — not the repository root.
@@ -80,7 +82,7 @@ extension/
   icons/                        Toolbar and extension icons
 scripts/
   build.mjs                     Builds the extension package (CRX + ZIP)
-dist/                           Build output (CRX, ZIP, version file) — gitignored
+dist/                           Build output (CRX + ZIP) — gitignored
 package.json                    Node build-tool dependencies
 .github/workflows/build-crx.yml Extension build and GitHub Release workflow
 screenshots/                    Screenshots used in this README
@@ -91,17 +93,17 @@ screenshots/                    Screenshots used in this README
 Translation begins only after the user starts it from the extension popup.
 While active, the audio from the selected tab is sent directly to the Gemini
 Live API to generate translated audio and/or subtitles. The extension stores
-the user’s API key and preferences in Chrome extension storage. It does not
+the user’s API key and preferences in browser extension storage. It does not
 download or execute remotely hosted JavaScript or WebAssembly.
 
-Before publishing, provide an accurate privacy policy and complete the Chrome
-Web Store Privacy tab to reflect these practices.
+Before publishing, provide an accurate privacy policy and complete the privacy
+disclosures required by your target browser store.
 
 ## Building locally
 
 ```bash
 npm install
-npm run build:crx
+npm run build
 ```
 
 Outputs `Doublage-x.y.z.crx` and `Doublage-x.y.z.zip` in `dist/`.
@@ -110,15 +112,15 @@ Set a custom path with the `EXTENSION_KEY_PATH` environment variable:
 
 ```bash
 # Linux / macOS
-EXTENSION_KEY_PATH=/path/to/key.pem npm run build:crx
+EXTENSION_KEY_PATH=/path/to/key.pem npm run build
 ```
 
 ```powershell
 # Windows (PowerShell)
-$env:EXTENSION_KEY_PATH="C:\path\to\key.pem"; npm run build:crx
+$env:EXTENSION_KEY_PATH="C:\path\to\key.pem"; npm run build
 ```
 
-## Release and Chrome Web Store publishing
+## Release and store publishing
 
 Releases are created by pushing a Git tag that matches the version in
 [`extension/manifest.json`](./extension/manifest.json).
@@ -148,10 +150,12 @@ Releases are created by pushing a Git tag that matches the version in
 
 4. GitHub Actions will automatically build and create a GitHub Release with:
    - `Doublage-v1.3.0.crx` : Signed CRX3 package for sideloading/testing
-   - `Doublage-v1.3.0.zip` : Plain ZIP for Chrome Web Store upload
+   - `Doublage-v1.3.0.zip` : ZIP package for browser store submission
 
-5. Download the ZIP from [Releases](../../releases) and upload to the
-   [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
+5. Download the ZIP from [Releases](../../releases) and upload it to your target store:
+   - Chrome Web Store: [Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+   - Microsoft Edge Add-ons: [Partner Center](https://partner.microsoft.com/dashboard/microsoftedge/overview)
+   - Opera Add-ons: [Developer dashboard](https://addons.opera.com/developer/)
 
 ## Automated Gemini API Integration Test
 

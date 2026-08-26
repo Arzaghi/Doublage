@@ -5,6 +5,7 @@
   "description": "Build tooling for the Doublage Chrome extension (signed CRX3 packaging).",
   "type": "module",
   "scripts": {
+    "build": "node scripts/build.mjs",
     "build:crx": "node scripts/build.mjs",
     "test:gemini": "node --test tests/gemini-integration.test.mjs"
   },

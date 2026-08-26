@@ -1,14 +1,14 @@
 'use strict';
 
-// RTL languages list for text direction detection
-const RTL_LANGUAGES = new Set([
-  'Arabic', 'Hebrew', 'Persian', 'Urdu', 'Pashto', 'Sindhi', 'Kurdish',
-  'Uyghur', 'Divehi', 'Syriac', 'Thaana'
-]);
-
 // Guard against double-injection (content_scripts may run on every navigation)
 if (!window.__doublageInjected) {
   window.__doublageInjected = true;
+
+  // RTL languages list for text direction detection
+  const RTL_LANGUAGES = new Set([
+    'Arabic', 'Hebrew', 'Persian', 'Urdu', 'Pashto', 'Sindhi', 'Kurdish',
+    'Uyghur', 'Divehi', 'Syriac', 'Thaana'
+  ]);
 
   // ─── Subtitle overlay ──────────────────────────────────────────────────────
   const overlay = document.createElement('div');

@@ -4,20 +4,16 @@
  * Usage:
  *   node scripts/build.mjs
  *
- * Behaviour:
- *   1. Reads extension/manifest.json.
- *   2. Uses the version specified in manifest.json (does NOT modify the manifest).
- *   3. Validates that the version is a valid Chrome extension version (X.Y.Z format).
- *   4. Packs extension/ into a CRX3 file signed with the extension private key
- *      (extension.pem by default) plus a plain ZIP for Chrome Web Store upload.
- *   5. Writes the version to dist/VERSION and prints the output paths.
+ * Outputs:
+ *   - dist/Doublage-vX.Y.Z.crx
+ *   - dist/Doublage-vX.Y.Z.zip
  *
  * Environment:
  *   EXTENSION_KEY_PATH - optional path to the private key (default: <repo>/extension.pem).
  */
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -52,6 +48,7 @@ if (!versionRegex.test(version)) {
 
 // ---- 2. Build the signed CRX3 + ZIP -------------------------------------------
 mkdirSync(DIST, { recursive: true });
+rmSync(join(DIST, 'VERSION'), { force: true });
 const crxPath = join(DIST, `${EXTENSION_NAME}-v${version}.crx`);
 const zipPath = join(DIST, `${EXTENSION_NAME}-v${version}.zip`);
 
@@ -62,14 +59,24 @@ try {
   crx3Bin = 'crx3';
 }
 
-// Signs the extension directory with the private key and writes both a CRX3 and
-// a plain ZIP. An existing key file is reused; otherwise one is created.
-execFileSync(process.execPath, [crx3Bin, '-z', zipPath, '-p', KEY_PATH, '-o', crxPath, EXT_DIR], {
+if (!existsSync(KEY_PATH)) {
+  console.warn('⚠️  Warning: extension signing key not found.');
+  console.warn(`   Missing key path: ${KEY_PATH}`);
+  console.warn('   A NEW private key will be auto-created by crx3 for this build.');
+  console.warn('   This rotates the extension identity and breaks update continuity for existing CRX installs.');
+  console.warn('   To keep a stable extension identity, set EXTENSION_KEY_PATH to your existing key.');
+}
+
+execFileSync(process.execPath, [
+  crx3Bin,
+  '-z', zipPath,
+  '-p', KEY_PATH,
+  '-o', crxPath,
+  EXT_DIR,
+], {
   stdio: 'inherit',
 });
 
-// ---- 3. Record the version (without modifying manifest) -------------------------
-writeFileSync(join(DIST, 'VERSION'), version + '\n');
 console.log(`✓ Doublage v${version} built:`);
 console.log(`  CRX: ${crxPath}`);
 console.log(`  ZIP: ${zipPath}`);

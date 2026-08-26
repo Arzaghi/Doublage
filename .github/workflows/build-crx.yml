@@ -106,7 +106,7 @@ jobs:
       # Build the signed CRX3 and ZIP
       - name: Build signed CRX3 and ZIP
         shell: bash
-        run: node scripts/build.mjs
+        run: npm run build
 
       # Verify that the build artifacts were created
       - name: Verify build artifacts
@@ -125,22 +125,9 @@ jobs:
             exit 1
           }
           
-          [ -f "dist/VERSION" ] || {
-            echo "❌ Error: VERSION file not created at dist/VERSION"
-            exit 1
-          }
-          
-          # Verify dist/VERSION contains the correct version
-          DIST_VERSION=$(cat dist/VERSION)
-          if [ "$DIST_VERSION" != "$VERSION" ]; then
-            echo "❌ Error: dist/VERSION contains '$DIST_VERSION' but manifest version is '$VERSION'"
-            exit 1
-          fi
-          
           echo "✓ All build artifacts verified"
           echo "  - dist/Doublage-v${VERSION}.crx"
           echo "  - dist/Doublage-v${VERSION}.zip"
-          echo "  - dist/VERSION: $DIST_VERSION"
 
       # Upload build artifacts to GitHub Actions for easy access
       - name: Upload build artifacts
@@ -150,7 +137,6 @@ jobs:
           path: |
             dist/Doublage-v${{ steps.manifest.outputs.manifest_version }}.crx
             dist/Doublage-v${{ steps.manifest.outputs.manifest_version }}.zip
-            dist/VERSION
           if-no-files-found: error
 
       # Create GitHub Release and attach artifacts
