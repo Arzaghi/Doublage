@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Doublage",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Real-time audio translation of any tab using Gemini Live API.",
   "permissions": [
     "tabCapture",
