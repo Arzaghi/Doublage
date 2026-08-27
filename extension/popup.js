@@ -25,6 +25,7 @@ let translating       = false;
 let currentLang       = 'English';
 let favList           = [];
 let currentOutputMode = 'audio';
+let apiKeyConfigured  = false;
 
 // ─── Theme Management ─────────────────────────────────────────────────────────
 function applyTheme(themeSetting) {
@@ -44,6 +45,12 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.theme) {
     applyTheme(changes.theme.newValue);
+  }
+  if (area === 'sync' && changes.apiKey) {
+    apiKeyConfigured = !!changes.apiKey.newValue;
+    if (!translating) {
+      statusLabel.textContent = setIdleStatus();
+    }
   }
 });
 
@@ -83,8 +90,11 @@ async function init() {
 
   if (!s.apiKey) showError('API key not configured — open Settings first.');
 
+  apiKeyConfigured = !!s.apiKey;
+
   const status = await chrome.runtime.sendMessage({ action: 'getStatus' });
   if (status?.isTranslating) setActive(true);
+  else statusLabel.textContent = setIdleStatus();
 }
 
 // ─── Favorites quick-pick ─────────────────────────────────────────────────────
@@ -251,11 +261,15 @@ function setActive(active) {
   translating = active;
 
   statusDot.className     = 'dot' + (active ? ' active' : '');
-  statusLabel.textContent = active ? 'Translating…' : 'Ready';
+  statusLabel.textContent = active ? 'Translating…' : setIdleStatus();
 
   mainBtn.className   = 'btn-main ' + (active ? 'stop' : 'start');
   btnIcon.textContent = active ? '■' : '▶';
   btnText.textContent = active ? 'Stop Translation' : 'Start Translation';
+}
+
+function setIdleStatus() {
+  return apiKeyConfigured ? 'Ready' : 'API Not Configured';
 }
 
 function updateLangPill(lang) {
